@@ -33,7 +33,7 @@ server_connection::server_connection(io_service &service):
 
 server_connection::~server_connection()
 {
-	
+	delete p;
 }
 
 tcp::socket& server_connection::socket() { return p->socket; }
