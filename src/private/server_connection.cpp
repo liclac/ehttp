@@ -1,5 +1,5 @@
 #include <iostream>
-#include <ehttp/server_connection.h>
+#include <ehttp/private/server_connection.h>
 #include <ehttp/server.h>
 
 using namespace ehttp;
@@ -72,5 +72,3 @@ void server_connection::read_chunk()
 		}
 	});
 }
-
-

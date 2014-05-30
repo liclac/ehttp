@@ -1,6 +1,6 @@
 #include <iostream>
 #include <ehttp/server.h>
-#include <ehttp/server_connection.h>
+#include <ehttp/private/server_connection.h>
 
 using namespace ehttp;
 using namespace asio;
@@ -8,7 +8,7 @@ using namespace asio::ip;
 
 
 
-struct ehttp::server::impl
+struct server::impl
 {
 	io_service service;
 	
