@@ -6,22 +6,40 @@ using namespace ehttp;
 using namespace asio;
 using namespace asio::ip;
 
-server::server(unsigned int workers):
-	acceptor(service)
+
+
+struct ehttp::server::impl
 {
-	work = new io_service::work(service);
+	io_service service;
+	
+	io_service::work *work;
+	tcp::acceptor acceptor;
+	
+	std::deque<std::thread> worker_threads;
+	
+	impl(): acceptor(service) {}
+};
+
+
+
+server::server(unsigned int workers):
+	p(new impl)
+{
+	p->work = new io_service::work(p->service);
 	
 	for(unsigned int i = 0; i < workers; i++)
-		worker_threads.emplace_back([&]{ service.run(); });
+		p->worker_threads.emplace_back([&]{ p->service.run(); });
 }
 
 server::~server()
 {
-	delete work;
-	acceptor.close();
-	service.stop();
-	for(auto it = worker_threads.begin(); it != worker_threads.end(); it++)
+	delete p->work;
+	p->acceptor.close();
+	p->service.stop();
+	for(auto it = p->worker_threads.begin(); it != p->worker_threads.end(); it++)
 		it->join();
+	
+	delete p;
 }
 
 asio::error_code server::listen(const unsigned short &port)
@@ -38,13 +56,13 @@ asio::error_code server::listen(const tcp::endpoint &endpoint)
 {
 	asio::error_code error;
 	
-	acceptor.open(endpoint.protocol(), error);
+	p->acceptor.open(endpoint.protocol(), error);
 	if(error) return error;
 	
-	acceptor.bind(endpoint, error);
+	p->acceptor.bind(endpoint, error);
 	if(error) return error;
 	
-	acceptor.listen(asio::socket_base::max_connections, error);
+	p->acceptor.listen(asio::socket_base::max_connections, error);
 	if(error) return error;
 	
 	this->accept();
@@ -53,14 +71,14 @@ asio::error_code server::listen(const tcp::endpoint &endpoint)
 
 void server::run()
 {
-	service.run();
+	p->service.run();
 }
 
 void server::accept()
 {
-	server_connection *connection = new server_connection(this, service);
+	server_connection *connection = new server_connection(this, p->service);
 	
-	acceptor.async_accept(connection->socket, [=](const asio::error_code &error)
+	p->acceptor.async_accept(connection->socket, [=](const asio::error_code &error)
 	{
 		if(!error)
 		{
