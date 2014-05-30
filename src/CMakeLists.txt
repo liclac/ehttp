@@ -21,5 +21,7 @@ add_definitions("-DASIO_STANDALONE")
 #
 # --> Build Library
 #
-file(GLOB_RECURSE ehttp_SOURCES *.cpp *.h)
-add_library(ehttp ${ehttp_SOURCES} ${http_parser_SOURCES})
+include_directories("${PROJECT_SOURCE_DIR}/include")
+file(GLOB_RECURSE ehttp_HEADERS "${PROJECT_SOURCE_DIR}/include/*.h")
+file(GLOB_RECURSE ehttp_SOURCES "*.cpp")
+add_library(ehttp ${ehttp_SOURCES} ${ehttp_HEADERS} ${http_parser_SOURCES})

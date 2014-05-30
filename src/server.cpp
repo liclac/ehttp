@@ -1,6 +1,6 @@
-#include "server.h"
+#include <ehttp/server.h>
+#include <ehttp/server_connection.h>
 #include "_config.h"
-#include "server_connection.h"
 
 using namespace ehttp;
 using namespace asio;
