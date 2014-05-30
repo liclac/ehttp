@@ -20,10 +20,13 @@ namespace ehttp
 		virtual bool listen(const std::string &address, const unsigned short &port);
 		virtual bool listen(const tcp::endpoint &endpoint);
 		
+		virtual void run();
+		
+		io_service service;
+		
 	protected:
 		virtual void accept();
 		
-		io_service service;
 		io_service::work *work;
 		tcp::acceptor acceptor;
 		

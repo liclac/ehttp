@@ -48,6 +48,11 @@ bool server::listen(const tcp::endpoint &endpoint)
 	else return false;
 }
 
+void server::run()
+{
+	service.run();
+}
+
 void server::accept()
 {
 	server_connection *connection = new server_connection(this, service);
