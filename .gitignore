@@ -7,3 +7,5 @@ Makefile
 *.swp
 
 /lib
+/bin
+
