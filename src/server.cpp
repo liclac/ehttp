@@ -1,51 +1,56 @@
+#include <iostream>
 #include <ehttp/server.h>
 #include <ehttp/server_connection.h>
-#include "_config.h"
 
 using namespace ehttp;
 using namespace asio;
 using namespace asio::ip;
 
-server::server():
+server::server(unsigned int workers):
 	acceptor(service)
 {
 	work = new io_service::work(service);
 	
-	for(unsigned int i = 0; i < kServerWorkerThreads; i++)
+	for(unsigned int i = 0; i < workers; i++)
 		worker_threads.emplace_back([&]{ service.run(); });
 }
 
 server::~server()
 {
 	delete work;
+	acceptor.close();
 	service.stop();
 	for(auto it = worker_threads.begin(); it != worker_threads.end(); it++)
 		it->join();
 }
 
-bool server::listen(const unsigned short &port)
+asio::error_code server::listen(const unsigned short &port)
 {
-	return this->listen(tcp::endpoint(tcp::v6(), port));
+	return this->listen(tcp::endpoint(tcp::v4(), port));
 }
 
-bool server::listen(const std::string &address, const unsigned short &port)
+asio::error_code server::listen(const std::string &address, const unsigned short &port)
 {
 	return this->listen(tcp::endpoint(address::from_string(address), port));
 }
 
-bool server::listen(const tcp::endpoint &endpoint)
+asio::error_code server::listen(const tcp::endpoint &endpoint)
 {
-	acceptor.open(endpoint.protocol());
+	asio::error_code error;
 	
-	asio::error_code ec;
-	acceptor.bind(endpoint, ec);
+	acceptor.open(endpoint.protocol(), error);
+	if(error) return error;
 	
-	if(!ec)
-	{
-		this->accept();
-		return true;
-	}
-	else return false;
+	acceptor.bind(endpoint, error);
+	if(error) return error;
+	
+	acceptor.listen(asio::socket_base::max_connections, error);
+	if(error) return error;
+	
+	this->accept();
+	return error;
+	//this->accept();
+	//return error_code();
 }
 
 void server::run()
@@ -64,6 +69,10 @@ void server::accept()
 			connection->connected();
 			this->accept();
 		}
-		else delete connection;
+		else
+		{
+			delete connection;
+			std::cerr << "Couldn't accept: " << error.message() << std::endl;
+		}
 	});
 }

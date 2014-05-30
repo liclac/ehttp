@@ -1,6 +1,7 @@
 #ifndef EHTTP_SERVER_CONNECTION_H
 #define EHTTP_SERVER_CONNECTION_H
 
+#include <vector>
 #include <asio.hpp>
 
 namespace ehttp
@@ -16,6 +17,7 @@ namespace ehttp
 		virtual ~server_connection();
 		
 		virtual void connected();
+		virtual void disconnect();
 		
 		tcp::socket socket;
 		
@@ -24,6 +26,8 @@ namespace ehttp
 		
 		io_service &service;
 		server *srv;
+		
+		std::vector<char> read_buffer;
 	};
 }
 

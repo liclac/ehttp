@@ -13,12 +13,12 @@ namespace ehttp
 	class server
 	{
 	public:
-		server();
+		server(unsigned int workers = 0);
 		virtual ~server();
 		
-		virtual bool listen(const unsigned short &port);
-		virtual bool listen(const std::string &address, const unsigned short &port);
-		virtual bool listen(const tcp::endpoint &endpoint);
+		virtual asio::error_code listen(const unsigned short &port);
+		virtual asio::error_code listen(const std::string &address, const unsigned short &port);
+		virtual asio::error_code listen(const tcp::endpoint &endpoint);
 		
 		virtual void run();
 		
