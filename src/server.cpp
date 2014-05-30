@@ -49,8 +49,6 @@ asio::error_code server::listen(const tcp::endpoint &endpoint)
 	
 	this->accept();
 	return error;
-	//this->accept();
-	//return error_code();
 }
 
 void server::run()
