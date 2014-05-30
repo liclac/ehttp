@@ -3,7 +3,7 @@
 	[
 		{
 			"path": ".",
-			"folder_exclude_patterns": ["lib", "CMakeFiles"],
+			"folder_exclude_patterns": ["bin", "lib", "CMakeFiles"],
 			"file_exclude_patterns": ["CMakeCache.txt", "Makefile", "cmake_install.cmake"]
 		}
 	]
