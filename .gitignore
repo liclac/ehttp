@@ -1,0 +1,8 @@
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+
+*.sublime-workspace
+*.swp
+
+/lib

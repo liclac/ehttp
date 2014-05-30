@@ -1,0 +1,6 @@
+[submodule "vendor/http-parser"]
+	path = vendor/http-parser
+	url = git@github.com:joyent/http-parser.git
+[submodule "vendor/asio"]
+	path = vendor/asio
+	url = git@github.com:chriskohlhoff/asio.git
