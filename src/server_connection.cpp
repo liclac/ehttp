@@ -8,10 +8,25 @@ using namespace asio::ip;
 
 #define kReadBufferSize 1024
 
-server_connection::server_connection(server *srv, io_service &service):
-	socket(service),
-	service(service), srv(srv),
-	read_buffer(kReadBufferSize)
+
+
+struct server_connection::impl
+{	
+	io_service &service;
+	tcp::socket socket;
+	
+	std::vector<char> read_buffer;
+	
+	impl(io_service &service):
+		service(service), socket(service),
+		read_buffer(kReadBufferSize)
+	{}
+};
+
+
+
+server_connection::server_connection(io_service &service):
+	p(new impl(service))
 {
 	
 }
@@ -21,6 +36,8 @@ server_connection::~server_connection()
 	
 }
 
+tcp::socket& server_connection::socket() { return p->socket; }
+
 void server_connection::connected()
 {
 	this->read_chunk();
@@ -28,11 +45,11 @@ void server_connection::connected()
 
 void server_connection::disconnect()
 {
-	if(socket.is_open())
+	if(p->socket.is_open())
 	{
 		try {
-			socket.shutdown(tcp::socket::shutdown_both);
-			socket.close();
+			p->socket.shutdown(tcp::socket::shutdown_both);
+			p->socket.close();
 		} catch (std::system_error err) {
 			// If this happens, that means we've already disconnected
 		}
@@ -41,12 +58,12 @@ void server_connection::disconnect()
 
 void server_connection::read_chunk()
 {
-	socket.async_read_some(asio::buffer(read_buffer, kReadBufferSize),
+	p->socket.async_read_some(asio::buffer(p->read_buffer, kReadBufferSize),
 		[&](const asio::error_code &error, std::size_t bytes_transferred)
 	{
 		if(!error)
 		{
-			std::string str(&read_buffer[0], bytes_transferred);
+			std::string str(&p->read_buffer[0], bytes_transferred);
 			std::cout << str;
 		}
 		else
@@ -55,3 +72,5 @@ void server_connection::read_chunk()
 		}
 	});
 }
+
+

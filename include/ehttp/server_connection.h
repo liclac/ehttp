@@ -13,21 +13,19 @@ namespace ehttp
 	class server_connection
 	{
 	public:
-		server_connection(server *srv, io_service &service);
+		server_connection(io_service &service);
 		virtual ~server_connection();
 		
-		virtual void connected();
-		virtual void disconnect();
+		tcp::socket& socket();
 		
-		tcp::socket socket;
+		void connected();
+		void disconnect();
 		
 	protected:
-		virtual void read_chunk();
+		void read_chunk();
 		
-		io_service &service;
-		server *srv;
-		
-		std::vector<char> read_buffer;
+		struct impl;
+		impl *p;
 	};
 }
 

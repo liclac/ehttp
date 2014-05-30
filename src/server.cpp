@@ -17,7 +17,9 @@ struct ehttp::server::impl
 	
 	std::deque<std::thread> worker_threads;
 	
-	impl(): acceptor(service) {}
+	impl():
+		acceptor(service)
+	{}
 };
 
 
@@ -76,9 +78,9 @@ void server::run()
 
 void server::accept()
 {
-	server_connection *connection = new server_connection(this, p->service);
+	server_connection *connection = new server_connection(p->service);
 	
-	p->acceptor.async_accept(connection->socket, [=](const asio::error_code &error)
+	p->acceptor.async_accept(connection->socket(), [=](const asio::error_code &error)
 	{
 		if(!error)
 		{
