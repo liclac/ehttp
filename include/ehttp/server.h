@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <thread>
+#include <functional>
 #include <asio.hpp>
 
 namespace ehttp
@@ -21,6 +22,9 @@ namespace ehttp
 		asio::error_code listen(const tcp::endpoint &endpoint);
 		
 		void run();
+		
+		std::function<void(void *data, std::size_t size)> on_data;
+		std::function<void(asio::error_code error)> on_error;
 		
 	protected:
 		virtual void accept();

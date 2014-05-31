@@ -11,24 +11,26 @@ using namespace asio::ip;
 
 
 struct server_connection::impl
-{	
+{
+	server *server;
+	
 	io_service &service;
 	tcp::socket socket;
 	
 	std::vector<char> read_buffer;
 	
 	impl(io_service &service):
-		service(service), socket(service),
-		read_buffer(kReadBufferSize)
+		service(service), socket(service)
 	{}
 };
 
 
 
-server_connection::server_connection(io_service &service):
+server_connection::server_connection(server *server, io_service &service):
 	p(new impl(service))
 {
-	
+	p->server = server;
+	p->read_buffer.resize(kReadBufferSize);
 }
 
 server_connection::~server_connection()
@@ -63,12 +65,13 @@ void server_connection::read_chunk()
 	{
 		if(!error)
 		{
-			std::string str(&p->read_buffer[0], bytes_transferred);
-			std::cout << str;
+			if(p->server->on_data)
+				p->server->on_data(&p->read_buffer[0], bytes_transferred);
 		}
 		else
 		{
-			std::cerr << "Read Error: " << error.message() << std::endl;
+			if(p->server->on_error)
+				p->server->on_error(error);
 		}
 	});
 }

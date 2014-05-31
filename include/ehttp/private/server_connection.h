@@ -13,7 +13,7 @@ namespace ehttp
 	class server_connection
 	{
 	public:
-		server_connection(io_service &service);
+		server_connection(server *server, io_service &service);
 		virtual ~server_connection();
 		
 		tcp::socket& socket();

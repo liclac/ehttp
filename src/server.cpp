@@ -78,7 +78,7 @@ void server::run()
 
 void server::accept()
 {
-	server_connection *connection = new server_connection(p->service);
+	server_connection *connection = new server_connection(this, p->service);
 	
 	p->acceptor.async_accept(connection->socket(), [=](const asio::error_code &error)
 	{
@@ -90,7 +90,8 @@ void server::accept()
 		else
 		{
 			delete connection;
-			std::cerr << "Couldn't accept: " << error.message() << std::endl;
+			if(on_error)
+				on_error(error);
 		}
 	});
 }
