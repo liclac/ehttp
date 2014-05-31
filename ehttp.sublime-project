@@ -3,8 +3,13 @@
 	[
 		{
 			"path": ".",
-			"folder_exclude_patterns": ["bin", "lib", "CMakeFiles"],
-			"file_exclude_patterns": ["CMakeCache.txt", "Makefile", "cmake_install.cmake"]
+			"folder_exclude_patterns": [
+				"bin", "lib", "CMakeFiles", "Testing"
+			],
+			"file_exclude_patterns": [
+				"CMakeCache.txt", "Makefile", "CTestTestfile.cmake", "cmake_install.cmake",
+				".gitmodules", "*.sublime-workspace"
+			]
 		}
 	]
 }
