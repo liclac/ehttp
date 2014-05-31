@@ -65,15 +65,21 @@ parser::~parser()
 	delete p;
 }
 
-bool parser::parse_chunk(void *data, std::size_t length)
+void parser::parse_chunk(void *data, std::size_t length)
 {
+	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(parser->data);
+	
 	std::size_t nparsed = http_parser_execute(p->parser, &ehttp_parser_parser_settings, static_cast<char*>(data), length);
 	if(p->parser->upgrade)
+	{
+		ctx->request->upgrade = true;
 		ehttp_parser_emit_request(p->parser);
+	}
 	else if(nparsed != length)
-		return false;
-	
-	return true;
+	{
+		delete ctx->request;
+		if(on_error) on_error();
+	}
 }
 
 
