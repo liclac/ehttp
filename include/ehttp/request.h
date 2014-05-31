@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "util.h"
+#include "private/_util.h"
 
 namespace ehttp
 {
