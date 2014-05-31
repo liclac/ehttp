@@ -25,6 +25,7 @@ url::url(std::string string):
 		parser_data_extract(UF_QUERY, query);
 		parser_data_extract(UF_FRAGMENT, fragment);
 	}
+	else path = string;
 }
 
 url::~url()
