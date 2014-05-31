@@ -27,6 +27,11 @@ url::url(std::string string):
 	}
 }
 
+url::~url()
+{
+	
+}
+
 std::string url::str() const
 {
 	std::stringstream ss;
@@ -35,8 +40,8 @@ std::string url::str() const
 	else if(!host.empty()) ss << "http://";
 	if(!host.empty()) ss << host;
 	if(!path.empty()) ss << path;
-	if(!path.empty()) ss << query;
-	if(!path.empty()) ss << fragment;
+	if(!path.empty()) ss << "?" << query;
+	if(!path.empty()) ss << "#" << fragment;
 	
 	return ss.str();
 }
