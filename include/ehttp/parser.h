@@ -12,7 +12,7 @@ namespace ehttp
 		parser();
 		virtual ~parser();
 		
-		bool parse_chunk(void *data, std::size_t length);
+		void parse_chunk(void *data, std::size_t length);
 		
 		std::function<void(ehttp::request *req)> on_request;
 		std::function<void()> on_error;
