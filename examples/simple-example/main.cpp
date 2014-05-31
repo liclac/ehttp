@@ -9,6 +9,8 @@ int main(int argc, const char **argv)
 	ehttp::server srv;
 	ehttp::parser parser;
 	
+	
+	
 	srv.on_data = [&](void *data, std::size_t size) {
 		//std::cout << std::string(static_cast<char*>(data), size) << std::endl;
 		parser.parse_chunk(data, size);
@@ -17,12 +19,16 @@ int main(int argc, const char **argv)
 		std::cerr << "Error: " << error.message() << std::endl;
 	};
 	
+	
+	
 	parser.on_request = [&](ehttp::request *req) {
 		std::cout << "Got a request for " << req->url << std::endl;
 	};
 	parser.on_error = [&]() {
 		std::cerr << "Parser Error" << std::endl;
 	}
+	
+	
 	
 	asio::error_code error = srv.listen(8080);
 	if(!error)
