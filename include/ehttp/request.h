@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "util.h"
 
 namespace ehttp
 {
@@ -16,7 +17,7 @@ namespace ehttp
 		std::string method;
 		std::string url;
 		
-		std::map<std::string,std::string> headers;
+		std::map<std::string,std::string,ci_less> headers;
 		std::vector<char> body;
 		
 		bool upgrade;
