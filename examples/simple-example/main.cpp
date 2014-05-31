@@ -26,7 +26,7 @@ int main(int argc, const char **argv)
 	};
 	parser.on_error = [&]() {
 		std::cerr << "Parser Error" << std::endl;
-	}
+	};
 	
 	
 	
