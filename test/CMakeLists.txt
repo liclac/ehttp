@@ -1,0 +1,11 @@
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test")
+include_directories("${PROJECT_SOURCE_DIR}/vendor/catch/include")
+include_directories("${PROJECT_SOURCE_DIR}/include")
+
+file(GLOB_RECURSE test_SOURCES *.cpp)
+foreach(file ${test_SOURCES})
+	get_filename_component(basename ${file} NAME_WE)
+	add_executable(${basename} ${file})
+	target_link_libraries(${basename} ehttp)
+	add_test(${basename} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${basename}")
+endforeach(file)
