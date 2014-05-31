@@ -131,7 +131,8 @@ int ehttp_parser_on_body(http_parser *parser, const char *data, size_t length)
 
 int ehttp_parser_on_message_complete(http_parser *parser)
 {
-	//ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(parser->data);
+	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(parser->data);
+	ctx->request->method = http_method_str(static_cast<http_method>(parser->method));
 	ehttp_parser_emit_request(parser);
 	return 0;
 }
