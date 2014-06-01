@@ -21,7 +21,7 @@ int main(int argc, const char **argv)
 	
 	
 	
-	parser.on_request = [&](ehttp::request *req) {
+	parser.on_request = [&](std::shared_ptr<ehttp::request> req) {
 		std::cout << "Got a request for " << req->url << std::endl;
 	};
 	parser.on_error = [&]() {

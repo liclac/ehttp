@@ -151,6 +151,6 @@ void ehttp_parser_push_header(http_parser *parser)
 void ehttp_parser_emit_request(http_parser *parser)
 {
 	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(parser->data);
-	ctx->parser->on_request(ctx->request);
+	ctx->parser->on_request(std::shared_ptr<request>(ctx->request));
 	ctx->request = 0;
 }
