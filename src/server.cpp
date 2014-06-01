@@ -44,12 +44,12 @@ server::~server()
 	delete p;
 }
 
-asio::error_code server::listen(const unsigned short &port)
+asio::error_code server::listen(const uint16_t &port)
 {
 	return this->listen(tcp::endpoint(tcp::v4(), port));
 }
 
-asio::error_code server::listen(const std::string &address, const unsigned short &port)
+asio::error_code server::listen(const std::string &address, const uint16_t &port)
 {
 	return this->listen(tcp::endpoint(address::from_string(address), port));
 }

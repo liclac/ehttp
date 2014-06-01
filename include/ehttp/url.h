@@ -2,6 +2,7 @@
 #define EHTTP_URL_H
 
 #include <string>
+#include <cstdint>
 
 namespace ehttp
 {
@@ -11,7 +12,7 @@ namespace ehttp
 		url(std::string string);
 		virtual ~url();
 		
-		unsigned short port;
+		uint16_t port;
 		std::string protocol, host, path, query, fragment;
 		
 		std::string str() const;

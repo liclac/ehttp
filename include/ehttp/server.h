@@ -1,6 +1,8 @@
 #ifndef EHTTP_SERVER_H
 #define EHTTP_SERVER_H
 
+#include <cstdint>
+#include <string>
 #include <deque>
 #include <thread>
 #include <functional>
@@ -17,8 +19,8 @@ namespace ehttp
 		server(unsigned int workers = 0);
 		virtual ~server();
 		
-		asio::error_code listen(const unsigned short &port);
-		asio::error_code listen(const std::string &address, const unsigned short &port);
+		asio::error_code listen(const uint16_t &port);
+		asio::error_code listen(const std::string &address, const uint16_t &port);
 		asio::error_code listen(const tcp::endpoint &endpoint);
 		
 		void run();
