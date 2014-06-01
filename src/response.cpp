@@ -154,6 +154,8 @@ void response::end(bool chunked)
 	
 	if(!p->chunked)
 	{
+		// TODO: Generate Date header
+		
 		if(chunked)
 		{
 			this->header("Transfer-Encoding", "chunked");
@@ -169,7 +171,10 @@ void response::end(bool chunked)
 				chk->end();
 			}
 			else
+			{
+				this->header("Content-Length", std::to_string(body->size()));
 				on_end(shared_from_this());
+			}
 		}
 		else
 			on_end(shared_from_this());
