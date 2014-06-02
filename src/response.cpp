@@ -1,5 +1,6 @@
 #include <unordered_map>
 #include <stdexcept>
+#include <sstream>
 #include <ehttp/response.h>
 
 using namespace ehttp;
@@ -114,6 +115,14 @@ void response::begin(uint16_t code, std::string custom_reason)
 	} else reason = custom_reason;
 }
 
+std::shared_ptr<response::chunk> response::begin_chunk()
+{
+	if(!p->chunked)
+		throw new std::runtime_error("Attempted to begin a chunk on a non-chunked connection; call ehttp::response::end(true) first");
+	
+	return std::make_shared<chunk>(shared_from_this());
+}
+
 void response::header(std::string name, std::string value)
 {
 	if(p->ended)
@@ -171,13 +180,13 @@ void response::end(bool chunked)
 				chk->end();
 			}
 			else
-			{
-				this->header("Content-Length", std::to_string(body->size()));
 				on_end(shared_from_this());
-			}
 		}
 		else
+		{
+			this->header("Content-Length", std::to_string(body.size()));
 			on_end(shared_from_this());
+		}
 	}
 	else if(!chunked)
 		on_end(shared_from_this());
@@ -185,12 +194,33 @@ void response::end(bool chunked)
 	p->ended = true;
 }
 
-std::shared_ptr<response::chunk> response::begin_chunk()
+void response::end_chunked()
 {
-	if(!p->chunked)
-		throw new std::runtime_error("Attempted to begin a chunk on a non-chunked connection; call ehttp::response::end(true) first");
+	if(!p->ended)
+		this->end(true);
 	
-	return std::make_shared<chunk>(shared_from_this());
+	if(!p->chunked)
+		throw new std::runtime_error("Attempted to end a chunked response, but it's not chunked!");
+	
+	// Chunked streams are terminated by a 0-length chunk
+	std::shared_ptr<chunk> chk = this->begin_chunk();
+	chk->end();
+}
+
+std::vector<char> response::to_http()
+{
+	// TODO: Skip the whole stringstream step and all the copying
+	std::stringstream ss;
+	
+	ss << "HTTP/1.1 " << code << " " << reason << "\r\n";
+	for(auto it = headers.begin(); it != headers.end(); it++)
+		ss << it->first << ": " << it->second << "\r\n";
+	ss << "\r\n";
+	
+	ss << std::string(body.begin(), body.end());
+	
+	std::string str = ss.str();
+	return std::vector<char>(str.begin(), str.end());
 }
 
 
@@ -223,4 +253,16 @@ void response::chunk::end()
 		throw new std::runtime_error("Chunk ended without an on_chunk handler");
 	
 	res_p->on_chunk(res_p, shared_from_this());
+}
+
+std::vector<char> response::chunk::to_http()
+{
+	// TODO: Skip the whole stringstream step and all the copying
+	std::stringstream ss;
+	
+	ss << std::hex << body.size() << "\r\n";
+	ss << std::string(body.begin(), body.end()) << "\r\n";
+	
+	std::string str = ss.str();
+	return std::vector<char>(str.begin(), str.end());
 }

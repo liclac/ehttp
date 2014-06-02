@@ -29,6 +29,7 @@ namespace ehttp
 		void write(const std::string &data);
 		
 		void end(bool chunked = false);
+		void end_chunked();
 		
 		
 		
