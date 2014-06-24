@@ -1,8 +1,10 @@
 CMakeCache.txt
 CMakeFiles
+CMakeScripts
 CTestTestfile.cmake
 cmake_install.cmake
 Makefile
+*.xcodeproj
 
 *.sublime-workspace
 *.swp
@@ -10,4 +12,5 @@ Makefile
 /lib
 /bin
 /Testing
+*.build
 
