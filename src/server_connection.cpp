@@ -12,6 +12,9 @@ using namespace asio::ip;
 
 struct server_connection::impl
 {
+	// Prevent autodeletion while in use
+	std::shared_ptr<server_connection> retain_self;
+	
 	server *server;
 	
 	io_service &service;
@@ -42,6 +45,7 @@ tcp::socket& server_connection::socket() { return p->socket; }
 
 void server_connection::connected()
 {
+	p->retain_self = this->shared_from_this();
 	this->read_chunk();
 }
 
@@ -56,6 +60,7 @@ void server_connection::disconnect()
 			// If this happens, that means we've already disconnected
 		}
 	}
+	p->retain_self.reset();
 }
 
 void server_connection::read_chunk()
