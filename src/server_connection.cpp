@@ -1,5 +1,5 @@
 #include <iostream>
-#include <ehttp/private/server_connection.h>
+#include <ehttp/server_connection.h>
 #include <ehttp/server.h>
 
 using namespace ehttp;
@@ -66,7 +66,7 @@ void server_connection::read_chunk()
 		if(!error)
 		{
 			if(p->server->on_data)
-				p->server->on_data(&p->read_buffer[0], bytes_transferred);
+				p->server->on_data(this->shared_from_this(), &p->read_buffer[0], bytes_transferred);
 		}
 		else
 		{

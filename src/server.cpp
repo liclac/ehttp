@@ -1,6 +1,6 @@
 #include <iostream>
 #include <ehttp/server.h>
-#include <ehttp/private/server_connection.h>
+#include <ehttp/server_connection.h>
 
 using namespace ehttp;
 using namespace asio;
@@ -78,7 +78,7 @@ void server::run()
 
 void server::accept()
 {
-	server_connection *connection = new server_connection(this, p->service);
+	std::shared_ptr<server_connection> connection = std::make_shared<server_connection>(this, p->service);
 	
 	p->acceptor.async_accept(connection->socket(), [=](const asio::error_code &error)
 	{
@@ -87,11 +87,7 @@ void server::accept()
 			connection->connected();
 			this->accept();
 		}
-		else
-		{
-			delete connection;
-			if(on_error)
-				on_error(error);
-		}
+		else if(on_error)
+			on_error(error);
 	});
 }

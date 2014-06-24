@@ -13,6 +13,7 @@ namespace ehttp
 	using namespace asio;
 	using namespace asio::ip;
 	
+	class server_connection;
 	class server
 	{
 	public:
@@ -25,7 +26,7 @@ namespace ehttp
 		
 		void run();
 		
-		std::function<void(void *data, std::size_t size)> on_data;
+		std::function<void(std::shared_ptr<server_connection> connection, void *data, std::size_t size)> on_data;
 		std::function<void(asio::error_code error)> on_error;
 		
 	protected:

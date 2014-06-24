@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <ehttp/server.h>
+#include <ehttp/server_connection.h>
 #include <ehttp/parser.h>
 #include <ehttp/request.h>
 #include <ehttp/response.h>
@@ -12,7 +13,7 @@ int main(int argc, const char **argv)
 	
 	
 	
-	srv.on_data = [&](void *data, std::size_t size) {
+	srv.on_data = [&](std::shared_ptr<ehttp::server_connection> connection, void *data, std::size_t size) {
 		//std::cout << std::string(static_cast<char*>(data), size) << std::endl;
 		parser.parse_chunk(data, size);
 	};
@@ -28,7 +29,7 @@ int main(int argc, const char **argv)
 		auto res = std::make_shared<ehttp::response>(req);
 		res->on_end = [](std::shared_ptr<ehttp::response> res) {
 			std::vector<char> http = res->to_http();
-			std::cout << std::string(http.begin(), http.end()) << std::endl;
+			//std::cout << std::string(http.begin(), http.end()) << std::endl;
 		};
 		res->on_chunk = [](std::shared_ptr<ehttp::response> res, std::shared_ptr<ehttp::response::chunk> chunk) {
 			std::vector<char> http = chunk->to_http();
