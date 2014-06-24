@@ -1,4 +1,5 @@
 #include <string>
+#include <stdexcept>
 #include <ehttp/parser.h>
 #include <ehttp/request.h>
 #include "../vendor/http-parser/http_parser.h"
@@ -28,7 +29,8 @@ static const http_parser_settings ehttp_parser_parser_settings = {
 
 struct ehttp_parser_parser_ctx
 {
-	request *request;
+	std::shared_ptr<request> request;
+	bool done;
 	
 	std::string tmp_header_field, tmp_header_value;
 	bool was_reading_header_value;
@@ -37,7 +39,6 @@ struct ehttp_parser_parser_ctx
 };
 
 void ehttp_parser_push_header(http_parser *parser);
-void ehttp_parser_emit_request(http_parser *parser);
 
 
 
@@ -53,8 +54,9 @@ parser::parser():
 	http_parser_init(p->parser, HTTP_REQUEST);
 	
 	ehttp_parser_parser_ctx *ctx = new ehttp_parser_parser_ctx;
-	ctx->parser = this;
+	ctx->done = false;
 	ctx->was_reading_header_value = false;
+	ctx->parser = this;
 	p->parser->data = ctx;
 }
 
@@ -65,21 +67,32 @@ parser::~parser()
 	delete p;
 }
 
-void parser::parse_chunk(void *data, std::size_t length)
+parser::status parser::parse_chunk(void *data, std::size_t length)
 {
 	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(p->parser->data);
+	
+	if(ctx->done)
+	{
+		ctx->done = false;
+		ctx->request = 0;
+	}
 	
 	std::size_t nparsed = http_parser_execute(p->parser, &ehttp_parser_parser_settings, static_cast<char*>(data), length);
 	if(p->parser->upgrade)
 	{
 		ctx->request->upgrade = true;
-		ehttp_parser_emit_request(p->parser);
+		return got_request;
 	}
 	else if(nparsed != length)
-	{
-		delete ctx->request;
-		if(on_error) on_error();
-	}
+		return error;
+	
+	return (ctx->done ? got_request : keep_going);
+}
+
+std::shared_ptr<request> parser::request()
+{
+	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(p->parser->data);
+	return ctx->request;
 }
 
 
@@ -87,7 +100,7 @@ void parser::parse_chunk(void *data, std::size_t length)
 int ehttp_parser_on_message_begin(http_parser *parser)
 {
 	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(parser->data);
-	ctx->request = new request;
+	ctx->request = std::make_shared<request>();
 	return 0;
 }
 
@@ -133,7 +146,7 @@ int ehttp_parser_on_message_complete(http_parser *parser)
 {
 	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(parser->data);
 	ctx->request->method = http_method_str(static_cast<http_method>(parser->method));
-	ehttp_parser_emit_request(parser);
+	ctx->done = true;
 	return 0;
 }
 
@@ -146,11 +159,4 @@ void ehttp_parser_push_header(http_parser *parser)
 	ctx->tmp_header_field.clear();
 	ctx->tmp_header_value.clear();
 	ctx->was_reading_header_value = false;
-}
-
-void ehttp_parser_emit_request(http_parser *parser)
-{
-	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(parser->data);
-	ctx->parser->on_request(std::shared_ptr<request>(ctx->request));
-	ctx->request = 0;
 }

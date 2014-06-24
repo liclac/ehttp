@@ -13,10 +13,14 @@ namespace ehttp
 		parser();
 		virtual ~parser();
 		
-		void parse_chunk(void *data, std::size_t length);
+		enum status {
+			error = -1,
+			keep_going = 0,
+			got_request = 1
+		};
 		
-		std::function<void(std::shared_ptr<request> req)> on_request;
-		std::function<void()> on_error;
+		parser::status parse_chunk(void *data, std::size_t length);
+		std::shared_ptr<request> request();
 		
 	protected:
 		struct impl;
