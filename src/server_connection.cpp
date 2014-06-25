@@ -10,6 +10,7 @@ using namespace asio::ip;
 
 
 
+/// \private
 struct server_connection::impl
 {
 	// Prevent autodeletion while in use
@@ -72,6 +73,8 @@ void server_connection::read_chunk()
 		{
 			if(p->server->on_data)
 				p->server->on_data(this->shared_from_this(), &p->read_buffer[0], bytes_transferred);
+			
+			this->read_chunk();
 		}
 		else
 		{

@@ -82,6 +82,7 @@ static const std::unordered_map<uint16_t,std::string> standard_statuses = {
 
 
 
+/// \private
 struct response::impl
 {
 	bool chunked, ended;
@@ -113,14 +114,6 @@ void response::begin(uint16_t code, std::string custom_reason)
 		if(it != standard_statuses.end()) reason = it->second;
 		else reason = "???";
 	} else reason = custom_reason;
-}
-
-std::shared_ptr<response::chunk> response::begin_chunk()
-{
-	if(!p->chunked)
-		throw new std::runtime_error("Attempted to begin a chunk on a non-chunked connection; call ehttp::response::end(true) first");
-	
-	return std::make_shared<chunk>(shared_from_this());
 }
 
 void response::header(std::string name, std::string value)
@@ -194,6 +187,14 @@ void response::end(bool chunked)
 	p->ended = true;
 }
 
+std::shared_ptr<response::chunk> response::begin_chunk()
+{
+	if(!p->chunked)
+		throw new std::runtime_error("Attempted to begin a chunk on a non-chunked connection; call ehttp::response::end(true) first");
+	
+	return std::make_shared<chunk>(shared_from_this());
+}
+
 void response::end_chunked()
 {
 	if(!p->ended)
@@ -257,7 +258,7 @@ void response::chunk::end()
 
 std::vector<char> response::chunk::to_http()
 {
-	// TODO: Skip the whole stringstream step and all the copying
+	/// @todo Skip the whole stringstream step and all the copying
 	std::stringstream ss;
 	
 	ss << std::hex << body.size() << "\r\n";

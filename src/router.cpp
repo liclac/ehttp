@@ -4,6 +4,7 @@
 
 using namespace ehttp;
 
+/// \private
 struct router::impl
 {
 	std::map<std::regex,handler_func> handlers;

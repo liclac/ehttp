@@ -27,6 +27,7 @@ static const http_parser_settings ehttp_parser_parser_settings = {
 	ehttp_parser_on_message_complete
 };
 
+/// \private
 struct ehttp_parser_parser_ctx
 {
 	std::shared_ptr<request> request;
@@ -42,6 +43,7 @@ void ehttp_parser_push_header(http_parser *parser);
 
 
 
+/// \private
 struct parser::impl
 {
 	http_parser *parser;
