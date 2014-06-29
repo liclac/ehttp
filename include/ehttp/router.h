@@ -11,6 +11,10 @@ namespace ehttp
 	/**
 	 * Path-based Router for HTTP Requests and handlers.
 	 * 
+	 * Note that the response callbacks are not called directly; the router
+	 * installs its own callbacks in responses that then call yours if
+	 * appropriate.
+	 * 
 	 * @todo Make an "abstract router" kind of class, that doesn't have an
 	 * opinion on how things are routed, then make path routers able to mount
 	 * other routers where it makes sense.\n
@@ -21,6 +25,8 @@ namespace ehttp
 	 * 
 	 * @todo Placeholders in routes, probably Flask-style placeholders. C++11
 	 * offers regular expressions, use that.
+	 * 
+	 * @todo Actually implement this!
 	 */
 	class router
 	{
@@ -88,10 +94,39 @@ namespace ehttp
 		/// Fallback code if no handler is found (defaults to 404)
 		uint16_t fallback_code;
 		
-		/// Callback for response::end()
+		
+		
+		/**
+		 * Called from response::on_head.
+		 * 
+		 * @param res The response
+		 * @param data The HTTP-formatted header data, ready to be written to a stream
+		 */
+		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_response_head;
+		
+		/**
+		 * Called from response::on_body.
+		 * 
+		 * @param res The response
+		 * @param res The response body, ready to be written to a stream
+		 */
+		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_response_body;
+		
+		/**
+		 * Called from response::on_chunk.
+		 * 
+		 * @param res The response
+		 * @param chunk The chunk
+		 * @param data The HTTP-formatted chunk data, ready to be written to a stream
+		 */
+		std::function<void(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data)> on_response_chunk;
+		
+		/**
+		 * Called from response::on_end.
+		 * 
+		 * @param res The response
+		 */
 		std::function<void(std::shared_ptr<response> res)> on_response_end;
-		/// Callback for response::chunk::end()
-		std::function<void(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk)> on_response_chunk;
 		
 	private:
 		struct impl;

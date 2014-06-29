@@ -141,6 +141,17 @@ namespace ehttp
 		
 		
 		
+		/**
+		 * Returns the response formatted according to the HTTP specification.
+		 * For chunked responses, only the header will be formatted - chunks
+		 * are responsible for formatting themselves.
+		 * 
+		 * @param headers_only Only include headers, not the body.
+		 */
+		std::vector<char> to_http(bool headers_only = false);
+		
+		
+		
 		/// The request we're responding to, for context
 		std::shared_ptr<request> req;
 		
@@ -153,24 +164,38 @@ namespace ehttp
 		/// Response body for non-chunked transfers
 		std::vector<char> body;
 		
+		
+		
 		/**
-		 * Returns the response formatted according to the HTTP specification.
-		 * For chunked responses, only the header will be formatted - chunks
-		 * are responsible for formatting themselves.
+		 * Callback for end().
 		 * 
-		 * @param headers_only Only include headers, not the body.
+		 * @param res The response
+		 * @param data The HTTP-formatted header data, ready to be written to a stream
 		 */
-		std::vector<char> to_http(bool headers_only = false);
-		
-		
-		
-		/// Callback for make_chunked() or end()
 		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_head;
-		/// Callback for end() for non-chunked responses
+		
+		/**
+		 * Callback for end() for non-chunked responses.
+		 * 
+		 * @param res The response
+		 * @param res The response body, ready to be written to a stream
+		 */
 		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_body;
-		/// Callback for chunk::end_chunk()
+		
+		/**
+		 * Callback for chunk::end_chunk().
+		 * 
+		 * @param res The response
+		 * @param chunk The chunk
+		 * @param data The HTTP-formatted chunk data, ready to be written to a stream
+		 */
 		std::function<void(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data)> on_chunk;
-		/// Callback for end()
+		
+		/**
+		 * Callback for end().
+		 * 
+		 * @param res The response
+		 */
 		std::function<void(std::shared_ptr<response> res)> on_end;
 		
 	private:
@@ -228,13 +253,15 @@ namespace ehttp
 		
 		
 		
+		/// Returns the chunk formatted according to the HTTP specification.
+		std::vector<char> to_http();
+		
+		
+		
 		/// The response the chunk is a part of
 		std::shared_ptr<response> res;
 		/// The chunk body
 		std::vector<char> body;
-		
-		/// Returns the chunk formatted according to the HTTP specification.
-		std::vector<char> to_http();
 	};
 }
 
