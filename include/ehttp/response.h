@@ -19,14 +19,6 @@ namespace ehttp
 	 * container. The reason for this is obviously that our main order of
 	 * business here is generating responses, rather than requests.
 	 * 
-	 * @todo Clean up the messy chunk implementation.\n
-	 * The response can enter a chunked state and write the header on the first
-	 * call to chunk::end(), removing the need for end_chunked(), and end()
-	 * could actually do what it sounds like.\n
-	 * This all seemed like a good idea at the time! I was thinking too much
-	 * about the HTTP spec and not enough about the interface usability. Always
-	 * think about the usability.
-	 * 
 	 * @todo Make things return pointers to themselves, to let you chain calls.
 	 * 
 	 * @todo Generate the Date header.
@@ -81,7 +73,8 @@ namespace ehttp
 		 * stream, ending with a call to end_chunked().
 		 * @throws std::runtime_error if #on_end isn't set.
 		 */
-		void end(bool chunked = false);
+		//void end(bool chunked = false);
+		void end();
 		
 		/**
 		 * Begins a chunk.
@@ -94,12 +87,13 @@ namespace ehttp
 		std::shared_ptr<chunk> begin_chunk();
 		
 		/**
-		 * Ends a chunked transfer. You should call this function on chunked
-		 * responses after you've written all chunks you want to the client.\n
-		 * No more chunks can be written after this function is called.
-		 * @throws std::logic_error if the response isn't chunked.
+		 * Makes the response chunked.
+		 * If there is data in #body, it's written out as a chunk.
+		 * 
+		 * You normally don't have to call this yourself, as it will be called
+		 * automatically by chunk::end(). It's mostly exposed for debugging.
 		 */
-		void end_chunked();
+		void make_chunked();
 		
 		
 		
@@ -120,14 +114,18 @@ namespace ehttp
 		 * For chunked responses, only the header will be formatted - chunks
 		 * are responsible for formatting themselves.
 		 */
-		std::vector<char> to_http();
+		std::vector<char> to_http(bool headers_only = false);
 		
 		
 		
+		/// Callback for make_chunked() or end()
+		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_head;
+		/// Callback for end() for non-chunked responses
+		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_body;
+		/// Callback for chunk::end()
+		std::function<void(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data)> on_chunk;
 		/// Callback for end()
 		std::function<void(std::shared_ptr<response> res)> on_end;
-		/// Callback for chunk::end()
-		std::function<void(std::shared_ptr<response> res, std::shared_ptr<chunk> chunk)> on_chunk;
 		
 	private:
 		struct impl;

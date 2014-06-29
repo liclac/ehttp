@@ -85,10 +85,10 @@ static const std::unordered_map<uint16_t,std::string> standard_statuses = {
 /// \private
 struct response::impl
 {
-	bool chunked, ended;
+	bool chunked, head_sent, body_sent, ended;
 	
 	impl():
-		chunked(false), ended(false)
+		chunked(false), head_sent(false), body_sent(false), ended(false)
 	{}
 };
 
@@ -118,7 +118,7 @@ void response::begin(uint16_t code, std::string custom_reason)
 
 void response::header(std::string name, std::string value)
 {
-	if(p->ended)
+	if(p->head_sent)
 		throw std::logic_error("Attempted to modify already sent headers");
 	
 	headers.insert(std::pair<std::string,std::string>(name, value));
@@ -126,10 +126,12 @@ void response::header(std::string name, std::string value)
 
 void response::write(const std::vector<char> &data)
 {
-	if(p->ended)
+	if(!p->body_sent)
 	{
 		if(!p->chunked)
-			throw std::logic_error("Attempted to write to an already sent response");
+		{
+			 body.insert(body.end(), data.begin(), data.end());
+		}
 		else
 		{
 			std::shared_ptr<chunk> chk = this->begin_chunk();
@@ -137,7 +139,10 @@ void response::write(const std::vector<char> &data)
 			chk->end();
 		}
 	}
-	else body.insert(body.end(), data.begin(), data.end());
+	else
+	{
+		throw std::logic_error("Attempted to write to an already sent response");
+	}
 }
 
 void response::write(const std::string &data)
@@ -145,72 +150,77 @@ void response::write(const std::string &data)
 	this->write(std::vector<char>(data.begin(), data.end()));
 }
 
-void response::end(bool chunked)
+void response::end()
 {
 	// Ignore attempts to end an already ended response
 	if(p->ended)
 		return;
 	
-	if(!on_end)
-		throw std::runtime_error("Response ended without an on_end handler");
-	
 	if(!p->chunked)
 	{
-		// TODO: Generate Date header
+		if(!on_head)
+			throw std::runtime_error("response::end() for non-chunked responses requires an on_head handler");
+		if(!on_body)
+			throw std::runtime_error("response::end() for non-chunked responses requires an on_body handler");
 		
-		if(chunked)
-		{
-			this->header("Transfer-Encoding", "chunked");
-			p->chunked = true;
-			
-			if(this->body.size() > 0)
-			{
-				std::shared_ptr<chunk> chk = this->begin_chunk();
-				chk->write(this->body);
-				this->body.clear();
-				
-				on_end(shared_from_this());
-				chk->end();
-			}
-			else
-				on_end(shared_from_this());
-		}
-		else
-		{
-			this->header("Content-Length", std::to_string(body.size()));
+		this->header("Content-Length", std::to_string(body.size()));
+		
+		on_head(shared_from_this(), this->to_http(true));
+		p->head_sent = true;
+		
+		on_body(shared_from_this(), body);
+		p->body_sent = true;
+		
+		if(on_end)
 			on_end(shared_from_this());
-		}
 	}
-	else if(!chunked)
-		on_end(shared_from_this());
+	else
+	{
+		if(!on_chunk)
+			throw std::runtime_error("response::end() for chunked responses requires an on_chunk handler");
+		
+		// Chunked connections are terminated by an empty chunk
+		on_chunk(shared_from_this(), this->begin_chunk(), std::vector<char>());
+		
+		if(on_end)
+			on_end(shared_from_this());
+	}
 	
 	p->ended = true;
 }
 
 std::shared_ptr<response::chunk> response::begin_chunk()
 {
-	if(!p->chunked)
-		throw std::logic_error("Attempted to begin a chunk on a non-chunked connection; call ehttp::response::end(true) first");
-	
 	return std::make_shared<chunk>(shared_from_this());
 }
 
-void response::end_chunked()
+void response::make_chunked()
 {
-	if(!p->ended)
-		this->end(true);
+	// Ignore attempts to make an already chunked response chunked
+	if(p->chunked)
+		return;
 	
-	if(!p->chunked)
-		throw std::logic_error("Attempted to end a chunked response, but it's not chunked!");
+	if(!on_head)
+		throw std::runtime_error("response::make_chunked() requires an on_head handler");
 	
-	// Chunked streams are terminated by a 0-length chunk
-	std::shared_ptr<chunk> chk = this->begin_chunk();
-	chk->end();
+	p->chunked = true;
+	this->header("Transfer-Encoding", "chunked");
+	
+	on_head(shared_from_this(), this->to_http(true));
+	p->head_sent = true;
+	
+	if(this->body.size() > 0)
+	{
+		std::shared_ptr<chunk> chk = this->begin_chunk();
+		chk->write(this->body);
+		this->body.clear();
+		chk->end();
+	}
 }
 
-std::vector<char> response::to_http()
+std::vector<char> response::to_http(bool headers_only)
 {
-	// TODO: Skip the whole stringstream step and all the copying
+	// @todo Skip the whole stringstream step and all the copying
 	std::stringstream ss;
 	
 	ss << "HTTP/1.1 " << code << " " << reason << "\r\n";
@@ -218,7 +228,8 @@ std::vector<char> response::to_http()
 		ss << it->first << ": " << it->second << "\r\n";
 	ss << "\r\n";
 	
-	ss << std::string(body.begin(), body.end());
+	if(!headers_only)
+		ss << std::string(body.begin(), body.end());
 	
 	std::string str = ss.str();
 	return std::vector<char>(str.begin(), str.end());
@@ -249,11 +260,12 @@ void response::chunk::write(const std::string &data)
 
 void response::chunk::end()
 {
-	auto res_p = res.lock();
-	if(!res_p->on_chunk)
-		throw std::runtime_error("Chunk ended without an on_chunk handler");
+	auto res_ptr = res.lock();
+	if(!res_ptr->on_chunk)
+		throw std::runtime_error("response::chunk::end() requires an on_chunk handler");
 	
-	res_p->on_chunk(res_p, shared_from_this());
+	res_ptr->make_chunked();
+	res_ptr->on_chunk(res_ptr, shared_from_this(), body);
 }
 
 std::vector<char> response::chunk::to_http()
