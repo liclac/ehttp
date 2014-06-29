@@ -7,7 +7,6 @@
 #include <thread>
 #include <functional>
 #include <asio.hpp>
-#include "server_connection.h"
 
 namespace ehttp
 {
@@ -27,6 +26,8 @@ namespace ehttp
 	class server
 	{
 	public:
+		class connection;
+		
 		/**
 		 * Constructor.
 		 * @param workers The number of worker threads to create
@@ -62,7 +63,7 @@ namespace ehttp
 		void run();
 		
 		/// Callback for when a connection receives data
-		std::function<void(std::shared_ptr<server_connection> connection, void *data, std::size_t size)> on_data;
+		std::function<void(std::shared_ptr<server::connection> connection, void *data, std::size_t size)> on_data;
 		
 		/// Callback for when there's a problem
 		std::function<void(asio::error_code error)> on_error;
@@ -70,6 +71,62 @@ namespace ehttp
 	protected:
 		/// Gets the server ready to accept a new connection
 		virtual void accept();
+		
+	private:
+		struct impl;
+		impl *p;
+	};
+	
+	
+	
+	/**
+	 * Represents a connection for \ref server.
+	 * 
+	 * Note that a connection will retain a shared_ptr to itself, thus
+	 * preventing it from getting deleted until it has disconnected.\n
+	 * When you are done with a connection, you should thus always call
+	 * disconnect() on it to prevent it from just laying around.
+	 * 
+	 * @todo Make it automatically disconnect when the socket is closed
+	 * 
+	 * @todo Make connected() and read_chunk() protected somehow
+	 */
+	class server::connection : public std::enable_shared_from_this<connection>
+	{
+	public:
+		/**
+		 * Constructor.
+		 * @param server The parent server
+		 * @param service The ASIO service
+		 */
+		connection(server *server, io_service &service);
+		virtual ~connection();
+		
+		/// Returns the connection's ASIO socket
+		tcp::socket& socket();
+		
+		/**
+		 * Disconnects from the client, and allows the connection to be deleted
+		 * if there are no more references to it.
+		 */
+		void disconnect();
+		
+		
+		
+		/**
+		 * \private (Hide it from Doxygen's output)
+		 * Called when the socket is connected. Only public because it is
+		 * currently necessary due to an implementation detail in \ref server,
+		 * which can change at any time.
+		 */
+		void connected();
+		
+		/**
+		 * \private (Hide it from Doxygen's output)
+		 * Called in a loop to read data form the stream. As with connected(),
+		 * it being public is an implementation detail and subject to change.
+		 */
+		void read_chunk();
 		
 	private:
 		struct impl;
