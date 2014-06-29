@@ -7,13 +7,12 @@
 #include <thread>
 #include <functional>
 #include <asio.hpp>
+#include "server_connection.h"
 
 namespace ehttp
 {
 	using namespace asio;
 	using namespace asio::ip;
-	
-	class server_connection;
 	
 	/**
 	 * A simple ASIO-based TCP server.

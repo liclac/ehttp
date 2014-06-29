@@ -3,11 +3,10 @@
 
 #include <functional>
 #include <memory>
+#include "request.h"
 
 namespace ehttp
 {
-	class request;
-	
 	/**
 	 * Parser for HTTP Requests.
 	 * 

@@ -3,12 +3,11 @@
 
 #include <cstdint>
 #include <memory>
+#include "request.h"
+#include "response.h"
 
 namespace ehttp
 {
-	class request;
-	class response;
-	
 	/**
 	 * Path-based Router for HTTP Requests and handlers.
 	 * 
@@ -92,7 +91,7 @@ namespace ehttp
 		/// Callback for response::end()
 		std::function<void(std::shared_ptr<response> res)> on_response_end;
 		/// Callback for response::chunk::end()
-		std::function<void(std::shared_ptr<response> res, std::shared_ptr<chunk> chunk)> on_response_chunk;
+		std::function<void(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk)> on_response_chunk;
 		
 	private:
 		struct impl;

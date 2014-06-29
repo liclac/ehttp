@@ -7,12 +7,11 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <ehttp/private/_util.h>
+#include "request.h"
+#include "private/_util.h"
 
 namespace ehttp
 {
-	class request;
-	
 	/**
 	 * Represents an HTTP Response.
 	 * 
