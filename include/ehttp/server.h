@@ -19,9 +19,6 @@ namespace ehttp
 	 * You can use this to easily listen for incoming connections, but you are
 	 * in no way required to - if you have another TCP server that works better
 	 * for you, feel free to use that.
-	 * 
-	 * @todo Make a way to poll using an existing main loop
-	 * @todo Make a way to shut it down when using run()
 	 */
 	class server
 	{
@@ -58,9 +55,27 @@ namespace ehttp
 		
 		/**
 		 * Runs the server on the current thread.
-		 * This function does not return.
+		 * This function will not return until the server is stopped, either by
+		 * calling stop() or in response to a termination request (SIGTERM).
 		 */
 		void run();
+		
+		/**
+		 * Stops a running server.
+		 * This will return immediately, but run() may take a moment before it
+		 * returns, as it will wait until all currently queued events have been
+		 * processed.
+		 */
+		void stop();
+		
+		/**
+		 * Runs one turn of the server loop.
+		 * If you have an existing run loop in your application, you can call
+		 * this function as a part of it (or just once in a while, really), to
+		 * neatly integrate ehttp into your application without having to give
+		 * it its own thread.
+		 */
+		void poll();
 		
 		/// Callback for when a connection receives data
 		std::function<void(std::shared_ptr<server::connection> connection, void *data, std::size_t size)> on_data;

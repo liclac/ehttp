@@ -78,6 +78,16 @@ void server::run()
 	p->service.run();
 }
 
+void server::stop()
+{
+	p->service.stop();
+}
+
+void server::poll()
+{
+	p->service.poll();
+}
+
 void server::accept()
 {
 	std::shared_ptr<server::connection> connection = std::make_shared<server::connection>(this, p->service);
