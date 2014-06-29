@@ -7,7 +7,7 @@
 namespace ehttp
 {
 	/**
-	 * Represents an URL.
+	 * Represents a URL.
 	 */
 	class url
 	{
