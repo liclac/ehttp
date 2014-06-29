@@ -142,7 +142,11 @@ tcp::socket& server::connection::socket() { return p->socket; }
 
 void server::connection::connected()
 {
-	p->retain_self = this->shared_from_this();
+	p->retain_self = shared_from_this();
+	
+	if(p->server->on_connected)
+		p->server->on_connected(shared_from_this());
+	
 	this->read_chunk();
 }
 
@@ -156,6 +160,9 @@ void server::connection::disconnect()
 		} catch (std::system_error err) {
 			// If this happens, that means we've already disconnected
 		}
+		
+		if(p->server->on_disconnected)
+			p->server->on_disconnected(shared_from_this());
 	}
 	p->retain_self.reset();
 }
@@ -168,7 +175,7 @@ void server::connection::read_chunk()
 		if(!error)
 		{
 			if(p->server->on_data)
-				p->server->on_data(this->shared_from_this(), &p->read_buffer[0], bytes_transferred);
+				p->server->on_data(shared_from_this(), &p->read_buffer[0], bytes_transferred);
 			
 			this->read_chunk();
 		}
@@ -176,6 +183,8 @@ void server::connection::read_chunk()
 		{
 			if(p->server->on_error)
 				p->server->on_error(error);
+			if(p->server->on_disconnected)
+				p->server->on_disconnected(shared_from_this());
 		}
 	});
 }

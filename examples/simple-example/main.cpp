@@ -10,15 +10,25 @@ using namespace ehttp;
 int main(int argc, const char **argv)
 {
 	server srv;
-	parser parser;
+	std::map<std::shared_ptr<server::connection>, std::shared_ptr<parser>> parsers;
 	
 	
+	
+	srv.on_connected = [&](std::shared_ptr<server::connection> connection) {
+		std::cout << "> Connected!" << std::endl;
+		parsers[connection] = std::make_shared<parser>();
+	};
+	srv.on_disconnected = [&](std::shared_ptr<server::connection> connection) {
+		std::cout << "> Disconnected!" << std::endl;
+		parsers.erase(connection);
+	};
 	
 	srv.on_data = [&](std::shared_ptr<server::connection> connection, void *data, std::size_t size) {
 		//std::cout << std::string(static_cast<char*>(data), size) << std::endl;
-		if(parser.parse_chunk(data, size) == parser::got_request)
+		std::shared_ptr<parser> parser = parsers[connection];
+		if(parser->parse_chunk(data, size) == parser::got_request)
 		{
-			std::shared_ptr<request> req = parser.request();
+			std::shared_ptr<request> req = parser->request();
 			std::cout << "Got a request for " << req->url << std::endl;
 			
 			auto res = std::make_shared<response>(req);

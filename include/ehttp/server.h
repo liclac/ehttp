@@ -77,8 +77,12 @@ namespace ehttp
 		 */
 		void poll();
 		
+		/// Callback for when a connection is established
+		std::function<void(std::shared_ptr<server::connection>)> on_connected;
 		/// Callback for when a connection receives data
 		std::function<void(std::shared_ptr<server::connection> connection, void *data, std::size_t size)> on_data;
+		/// Callback for when a connection is disconnected (including after errors)
+		std::function<void(std::shared_ptr<server::connection>)> on_disconnected;
 		
 		/// Callback for when there's a problem
 		std::function<void(asio::error_code error)> on_error;
