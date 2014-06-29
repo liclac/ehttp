@@ -196,11 +196,6 @@ void response::end()
 	p->ended = true;
 }
 
-std::shared_ptr<response::chunk> response::begin_chunk()
-{
-	return std::make_shared<chunk>(shared_from_this());
-}
-
 std::shared_ptr<response> response::make_chunked()
 {
 	// Ignore attempts to make an already chunked response chunked
@@ -225,6 +220,11 @@ std::shared_ptr<response> response::make_chunked()
 	}
 	
 	return shared_from_this();
+}
+
+std::shared_ptr<response::chunk> response::begin_chunk()
+{
+	return std::make_shared<chunk>(shared_from_this());
 }
 
 std::vector<char> response::to_http(bool headers_only)

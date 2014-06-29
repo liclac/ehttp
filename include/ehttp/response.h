@@ -19,6 +19,25 @@ namespace ehttp
 	 * container. The reason for this is obviously that our main order of
 	 * business here is generating responses, rather than requests.
 	 * 
+	 * The API is designed to make it easy to chain calls. For example, a
+	 * simple response can be generated with:
+	 * 
+	 *     res->begin()
+	 *         ->header("Content-Type", "text/plain")
+	 *         ->write("Lorem ipsum dolor sit amet")
+	 *         ->end()
+	 * 
+	 * To make a chunked response, either use begin_chunk(), chunk::write() and
+	 * chunk::end_chunk(), or call make_chunked(), which will cause all
+	 * sequential write() calls to write chunks.
+	 * 
+	 * You don't have to care whether a response is chunked or not at any given
+	 * time:\n
+	 * Non-chunked calls will automatically write chunks if the response is
+	 * chunked, otherwise add to a buffer.\n
+	 * Chunked calls will make the response chunked if it's not, immediately
+	 * writing a chunk consisting of any data written using non-chunked calls.
+	 * 
 	 * @todo Generate the Date header.
 	 */
 	class response : public std::enable_shared_from_this<response>
@@ -48,49 +67,68 @@ namespace ehttp
 		
 		/** 
 		 * Sets a header.
-		 * Headers can be modified freely until end() is called.
+		 * 
+		 * Headers can be modified freely until end() or make_chunked() is
+		 * called.
+		 * 
 		 * @throws std::logic_error if end() has already been called.
 		 */
 		std::shared_ptr<response> header(std::string name, std::string value);
 		
 		/**
-		 * Appends some data to the response body. Writes a chunk if end() has
-		 * already been called and the response is chunked.
+		 * Appends some data to the response body.
 		 * 
-		 * @throws std::logic_error if end() has already been called, and the
-		 * response is not chunked.
+		 * If the response is not chunked, the data is appended to the #body
+		 * buffer. Otherwise, a chunk is written containing the data.
+		 * 
+		 * @throws std::logic_error if the body has already been written, and
+		 * the response is not chunked.
 		 */
 		std::shared_ptr<response> write(const std::vector<char> &data);
 		/// @overload
 		std::shared_ptr<response> write(const std::string &data);
 		
 		/**
-		 * Finalizes the response and calls #on_end.
-		 * If chunked is true, the 'Transfer-Encoding' header will be set to
-		 * 'chunked', and you should use begin_chunk() to write chunks to the
-		 * stream, ending with a call to end_chunked().
-		 * @throws std::runtime_error if #on_end isn't set.
+		 * Finalizes the response and calls #on_end if present.
+		 * 
+		 * If the response is not chunked, #on_head and #on_body is called,
+		 * followed by #on_end if it's present.\n
+		 * Otherwise, #on_chunk is called with an empty chunk, as this is how
+		 * you signify the end of a chunked transfer, followed by #on_end if
+		 * it's present.
+		 * 
+		 * @throws std::runtime_error if the connection is not chunked and
+		 * either #on_head or #on_body are NULL.
+		 * @throws std::runtime_error if the connection is chunked and
+		 * #on_chunk is NULL.
 		 */
 		void end();
 		
 		/**
-		 * Begins a chunk.
-		 * Use chunk::end() to end it and write it out.\n
-		 * There is no reference counting for this or anything - if you realize
-		 * after you've begun a chunk that you don't actually need to send it,
-		 * just don't call chunk::end() on it.
-		 * @throws std::logic_error if the response isn't chunked.
-		 */
-		std::shared_ptr<chunk> begin_chunk();
-		
-		/**
 		 * Makes the response chunked.
+		 * 
+		 * This is automatically called from chunk::end_chunk(), and sets a
+		 * flag that will make any subsequent calls to write() send chunks
+		 * rather than append to the #body buffer.
+		 * 
 		 * If there is data in #body, it's written out as a chunk.
 		 * 
-		 * You normally don't have to call this yourself, as it will be called
-		 * automatically by chunk::end(). It's mostly exposed for debugging.
+		 * @throws std::runtime_error if #on_head is NULL.
 		 */
 		std::shared_ptr<response> make_chunked();
+		
+		/**
+		 * Begins a chunk.
+		 * 
+		 * Use chunk::end_chunk() to end it and write it out.
+		 * 
+		 * There is no reference counting for this or anything - if you realize
+		 * after you've begun a chunk that you don't actually need to send it,
+		 * just don't call chunk::end_chunk() on it.\n
+		 * Chunks keep a std::shared_ptr to their parent response, which means
+		 * that the response will not be destroyed until all of its chunks are.
+		 */
+		std::shared_ptr<chunk> begin_chunk();
 		
 		
 		
@@ -110,6 +148,8 @@ namespace ehttp
 		 * Returns the response formatted according to the HTTP specification.
 		 * For chunked responses, only the header will be formatted - chunks
 		 * are responsible for formatting themselves.
+		 * 
+		 * @param headers_only Only include headers, not the body.
 		 */
 		std::vector<char> to_http(bool headers_only = false);
 		
@@ -119,7 +159,7 @@ namespace ehttp
 		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_head;
 		/// Callback for end() for non-chunked responses
 		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_body;
-		/// Callback for chunk::end()
+		/// Callback for chunk::end_chunk()
 		std::function<void(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data)> on_chunk;
 		/// Callback for end()
 		std::function<void(std::shared_ptr<response> res)> on_end;
@@ -138,7 +178,6 @@ namespace ehttp
 	{
 	public:
 		/**
-		 * \private (to remove it from Doxygen's output)
 		 * Constructor, typically not called directly.
 		 * Instead, you should use response::begin_chunk() to create chunks.
 		 * This is exposed mainly for unit testing purposes.
