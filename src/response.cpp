@@ -119,7 +119,7 @@ void response::begin(uint16_t code, std::string custom_reason)
 void response::header(std::string name, std::string value)
 {
 	if(p->ended)
-		throw new std::runtime_error("Attempted to modify already sent headers");
+		throw std::logic_error("Attempted to modify already sent headers");
 	
 	headers.insert(std::pair<std::string,std::string>(name, value));
 }
@@ -129,7 +129,7 @@ void response::write(const std::vector<char> &data)
 	if(p->ended)
 	{
 		if(!p->chunked)
-			throw new std::runtime_error("Attempted to write to an already written response");
+			throw std::logic_error("Attempted to write to an already sent response");
 		else
 		{
 			std::shared_ptr<chunk> chk = this->begin_chunk();
@@ -152,7 +152,7 @@ void response::end(bool chunked)
 		return;
 	
 	if(!on_end)
-		throw new std::runtime_error("Response ended without an on_end handler");
+		throw std::runtime_error("Response ended without an on_end handler");
 	
 	if(!p->chunked)
 	{
@@ -190,7 +190,7 @@ void response::end(bool chunked)
 std::shared_ptr<response::chunk> response::begin_chunk()
 {
 	if(!p->chunked)
-		throw new std::runtime_error("Attempted to begin a chunk on a non-chunked connection; call ehttp::response::end(true) first");
+		throw std::logic_error("Attempted to begin a chunk on a non-chunked connection; call ehttp::response::end(true) first");
 	
 	return std::make_shared<chunk>(shared_from_this());
 }
@@ -201,7 +201,7 @@ void response::end_chunked()
 		this->end(true);
 	
 	if(!p->chunked)
-		throw new std::runtime_error("Attempted to end a chunked response, but it's not chunked!");
+		throw std::logic_error("Attempted to end a chunked response, but it's not chunked!");
 	
 	// Chunked streams are terminated by a 0-length chunk
 	std::shared_ptr<chunk> chk = this->begin_chunk();
@@ -251,7 +251,7 @@ void response::chunk::end()
 {
 	auto res_p = res.lock();
 	if(!res_p->on_chunk)
-		throw new std::runtime_error("Chunk ended without an on_chunk handler");
+		throw std::runtime_error("Chunk ended without an on_chunk handler");
 	
 	res_p->on_chunk(res_p, shared_from_this());
 }

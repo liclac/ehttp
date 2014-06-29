@@ -26,14 +26,6 @@ namespace ehttp
 	 * This all seemed like a good idea at the time! I was thinking too much
 	 * about the HTTP spec and not enough about the interface usability. Always
 	 * think about the usability.
-	 * 
-	 * @todo Use other exception types than std::runtime_error.\n
-	 * Quite a few of the errors thrown here aren't actually runtime errors as
-	 * much as they are programming mistakes, for which more appropriate
-	 * exception types are available.
-	 * 
-	 * @todo Throw exceptions properly!\n
-	 * You throw instances and catch them by reference, not `throw new ...` (as `new` may fail).
 	 */
 	class response : public std::enable_shared_from_this<response>
 	{
@@ -63,7 +55,7 @@ namespace ehttp
 		/** 
 		 * Sets a header.
 		 * Headers can be modified freely until end() is called.
-		 * @throws std::runtime_error if end() has already been called.
+		 * @throws std::logic_error if end() has already been called.
 		 */
 		void header(std::string name, std::string value);
 		
@@ -71,7 +63,7 @@ namespace ehttp
 		 * Appends some data to the response body. Writes a chunk if end() has
 		 * already been called and the response is chunked.
 		 * 
-		 * @throws std::runtime_error if end() has already been called, and the
+		 * @throws std::logic_error if end() has already been called, and the
 		 * response is not chunked.
 		 */
 		void write(const std::vector<char> &data);
@@ -93,7 +85,7 @@ namespace ehttp
 		 * There is no reference counting for this or anything - if you realize
 		 * after you've begun a chunk that you don't actually need to send it,
 		 * just don't call chunk::end() on it.
-		 * @throws std::runtime_error if the response isn't chunked.
+		 * @throws std::logic_error if the response isn't chunked.
 		 */
 		std::shared_ptr<chunk> begin_chunk();
 		
@@ -101,7 +93,7 @@ namespace ehttp
 		 * Ends a chunked transfer. You should call this function on chunked
 		 * responses after you've written all chunks you want to the client.\n
 		 * No more chunks can be written after this function is called.
-		 * @throws std::runtime_error if the response isn't chunked.
+		 * @throws std::logic_error if the response isn't chunked.
 		 */
 		void end_chunked();
 		
