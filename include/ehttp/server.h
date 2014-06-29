@@ -6,6 +6,7 @@
 #include <deque>
 #include <thread>
 #include <functional>
+#include <memory>
 #include <asio.hpp>
 
 namespace ehttp
@@ -180,6 +181,11 @@ namespace ehttp
 		 * if there are no more references to it.
 		 */
 		void disconnect();
+		
+		
+		
+		/// Arbitrary, user-assigned pointer, to be used for context data
+		std::shared_ptr<void> userdata;
 		
 		
 		
