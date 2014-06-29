@@ -1,7 +1,6 @@
 #include <string>
 #include <iostream>
 #include <ehttp/server.h>
-#include <ehttp/server_connection.h>
 #include <ehttp/parser.h>
 #include <ehttp/request.h>
 #include <ehttp/response.h>
@@ -13,7 +12,7 @@ int main(int argc, const char **argv)
 	
 	
 	
-	srv.on_data = [&](std::shared_ptr<ehttp::server_connection> connection, void *data, std::size_t size) {
+	srv.on_data = [&](std::shared_ptr<ehttp::server::connection> connection, void *data, std::size_t size) {
 		//std::cout << std::string(static_cast<char*>(data), size) << std::endl;
 		if(parser.parse_chunk(data, size) == ehttp::parser::got_request)
 		{
