@@ -19,8 +19,8 @@ namespace ehttp
 	 * MVC routing), and let you mount other routing styles onto each other
 	 * where it makes sense.
 	 * 
-	 * @todo Placeholders in routes, probably Flask-style <key>/<path:key>
-	 * expressions. C++11 offers regular expressions, use that.
+	 * @todo Placeholders in routes, probably Flask-style placeholders. C++11
+	 * offers regular expressions, use that.
 	 */
 	class router
 	{

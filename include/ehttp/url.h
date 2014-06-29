@@ -26,7 +26,7 @@ namespace ehttp
 		std::string host;			///< The host (eg. google.com)
 		std::string path;			///< The path (eg. /path/to/something)
 		std::string query;			///< The query (eg. ?q=abc123&p=...)
-		std::string fragment;		///< The fragment (eg. #top)
+		std::string fragment;		///< The fragment (eg. \#top)
 		
 		/**
 		 * Formats the different components into a full URL.
