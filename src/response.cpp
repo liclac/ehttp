@@ -140,7 +140,7 @@ std::shared_ptr<response> response::write(const std::vector<char> &data)
 		{
 			this->begin_chunk()
 				->write(data)
-				->end();
+				->end_chunk();
 		}
 	}
 	else
@@ -221,7 +221,7 @@ std::shared_ptr<response> response::make_chunked()
 		std::shared_ptr<chunk> chk = this->begin_chunk();
 		chk->write(this->body);
 		this->body.clear();
-		chk->end();
+		chk->end_chunk();
 	}
 	
 	return shared_from_this();
@@ -269,7 +269,7 @@ std::shared_ptr<response::chunk> response::chunk::write(const std::string &data)
 	return shared_from_this();
 }
 
-std::shared_ptr<response> response::chunk::end()
+std::shared_ptr<response> response::chunk::end_chunk()
 {
 	if(!res->on_chunk)
 		throw std::runtime_error("response::chunk::end() requires an on_chunk handler");
