@@ -120,6 +120,28 @@ namespace ehttp
 		/// Gets the server ready to accept a new connection
 		virtual void accept();
 		
+		
+		
+		/// Overridable emitter for #on_connected
+		virtual void event_connected(std::shared_ptr<server::connection> connection) {
+			if(on_connected) on_connected(connection);
+		}
+		
+		/// Overridable emitter for #on_data
+		virtual void event_data(std::shared_ptr<server::connection> connection, void *data, std::size_t size) {
+			if(on_data) on_data(connection, data, size);
+		}
+		
+		/// Overridable emitter for #on_disconnected
+		virtual void event_disconnected(std::shared_ptr<server::connection> connection) {
+			if(on_disconnected) on_disconnected(connection);
+		}
+		
+		/// Overridable emitter for #on_error
+		virtual void event_error(asio::error_code error) {
+			if(on_error) on_error(error);
+		}
+		
 	private:
 		struct impl;
 		impl *p;

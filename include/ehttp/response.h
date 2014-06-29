@@ -198,6 +198,27 @@ namespace ehttp
 		 */
 		std::function<void(std::shared_ptr<response> res)> on_end;
 		
+	protected:
+		/// Overridable emitter for #on_head
+		virtual void event_head(std::shared_ptr<response> res, std::vector<char> data) {
+			if(on_head) on_head(res, data);
+		}
+		
+		/// Overridable emitter for #on_body
+		virtual void event_body(std::shared_ptr<response> res, std::vector<char> data) {
+			if(on_body) on_body(res, data);
+		}
+		
+		/// Overridable emitter for #on_chunk
+		virtual void event_chunk(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data) {
+			if(on_chunk) on_chunk(res, chunk, data);
+		}
+		
+		/// Overridable emitter for #on_end
+		virtual void event_end(std::shared_ptr<response> res) {
+			if(on_end) on_end(res);
+		}
+		
 	private:
 		struct impl;
 		impl *p;

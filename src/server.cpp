@@ -99,8 +99,7 @@ void server::accept()
 			connection->connected();
 			this->accept();
 		}
-		else if(on_error)
-			on_error(error);
+		else event_error(error);
 	});
 }
 
@@ -144,8 +143,7 @@ void server::connection::connected()
 {
 	p->retain_self = shared_from_this();
 	
-	if(p->server->on_connected)
-		p->server->on_connected(shared_from_this());
+	p->server->event_connected(shared_from_this());
 	
 	this->read_chunk();
 }
@@ -161,8 +159,7 @@ void server::connection::disconnect()
 			// If this happens, that means we've already disconnected
 		}
 		
-		if(p->server->on_disconnected)
-			p->server->on_disconnected(shared_from_this());
+		p->server->event_disconnected(shared_from_this());
 	}
 	p->retain_self.reset();
 }
@@ -174,17 +171,14 @@ void server::connection::read_chunk()
 	{
 		if(!error)
 		{
-			if(p->server->on_data)
-				p->server->on_data(shared_from_this(), &p->read_buffer[0], bytes_transferred);
+			p->server->event_data(shared_from_this(), &p->read_buffer[0], bytes_transferred);
 			
 			this->read_chunk();
 		}
 		else
 		{
-			if(p->server->on_error)
-				p->server->on_error(error);
-			if(p->server->on_disconnected)
-				p->server->on_disconnected(shared_from_this());
+			p->server->event_error(error);
+			p->server->event_disconnected(shared_from_this());
 		}
 	});
 }
