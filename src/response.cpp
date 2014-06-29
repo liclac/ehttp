@@ -107,13 +107,28 @@ response::~response()
 
 std::shared_ptr<response> response::begin(uint16_t code, std::string custom_reason)
 {
-	this->code = code;
-	if(custom_reason.empty())
+	if(code != 0)
 	{
-		auto it = standard_statuses.find(code);
-		if(it != standard_statuses.end()) reason = it->second;
-		else reason = "???";
-	} else reason = custom_reason;
+		this->code = code;
+		if(custom_reason.empty())
+		{
+			auto it = standard_statuses.find(code);
+			if(it != standard_statuses.end()) reason = it->second;
+			else reason = "???";
+		} else reason = custom_reason;
+	}
+	else
+	{
+		if(p->ended)
+			throw std::logic_error("Can't reuse an already sent response");
+		if(p->head_sent || p->body_sent)
+			throw std::logic_error("Can't reuse a partially sent response");
+		if(p->chunked)
+			throw std::logic_error("Can't reuse a chunked response");
+		
+		headers.clear();
+		body.clear();
+	}
 	
 	return shared_from_this();
 }

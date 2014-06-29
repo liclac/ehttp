@@ -58,10 +58,19 @@ namespace ehttp
 		 * reason phrase associated with the response code ("OK" for 200, "Not
 		 * Found" for 404, "Internal Server Error" for 500, etc.) is used.
 		 * 
-		 * @todo Let begin(0) reuse already set code and reason, but clear
-		 * headers, to let you write nicer looking status handlers without
-		 * clobbering data (possibly setting the wrong status code by accident)
-		 * in the name of symmetry. That'd be pretty dumb.
+		 * Calling `begin(0)` will reuse the response, resetting the contents
+		 * while keeping the already set response code and reason phrase.\n
+		 * This is used mainly to allow status handlers to work on a clean
+		 * response, but without clobbering the previously set response code
+		 * and reason phrase.
+		 * 
+		 * Note that you can't reuse chunked response (because there could
+		 * still be chunks waiting to be written, which would result in a
+		 * corrupted response), or if any part of it has already been sent
+		 * (because you can't "un-send" things).
+		 * 
+		 * @throws std::logic_error if `begin(0)` is called, but any part of
+		 * the response has already been sent, or the response is chunked.
 		 */
 		std::shared_ptr<response> begin(uint16_t code = 200, std::string custom_reason = "");
 		
