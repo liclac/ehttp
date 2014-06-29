@@ -19,8 +19,6 @@ namespace ehttp
 	 * container. The reason for this is obviously that our main order of
 	 * business here is generating responses, rather than requests.
 	 * 
-	 * @todo Make things return pointers to themselves, to let you chain calls.
-	 * 
 	 * @todo Generate the Date header.
 	 */
 	class response : public std::enable_shared_from_this<response>
