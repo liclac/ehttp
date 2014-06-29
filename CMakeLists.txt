@@ -23,3 +23,17 @@ else()
 	add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} 
 		--force-new-ctest-process --output-on-failure)
 endif()
+
+# Automatically build Doxygen documentation if Doxygen is installed
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+	add_custom_target(docs ALL
+		${DOXYGEN_EXECUTABLE} ${CMAKE_SOURCE_DIR}/Doxyfile > /dev/null
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		VERBATIM
+	)
+	
+	# Make sure to generate documentation *after* the source targets; this
+	# keeps Doxygen from slowing down the build and flipping over invalid code
+	add_dependencies(docs ehttp)
+endif(DOXYGEN_FOUND)
