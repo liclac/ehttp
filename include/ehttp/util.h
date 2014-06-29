@@ -8,7 +8,8 @@
 
 namespace ehttp
 {
-	namespace util {
+	namespace util
+	{
 		/**
 		 * Case-insensitive comparator.
 		 * 
@@ -17,9 +18,11 @@ namespace ehttp
 		 * 
 		 * Based on an answer to http://stackoverflow.com/questions/1801892
 		 */
-		struct ci_less : public std::binary_function<std::string, std::string, bool> {
+		struct ci_less : public std::binary_function<std::string, std::string, bool>
+		{
 			///\private No need to document this, really
-			bool operator()(const std::string &lhs, const std::string &rhs) const {
+			bool operator()(const std::string &lhs, const std::string &rhs) const
+			{
 				return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
 			}
 		};
