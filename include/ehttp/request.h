@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "private/_util.h"
+#include "util.h"
 
 namespace ehttp
 {
@@ -29,7 +29,7 @@ namespace ehttp
 		std::string url;
 		
 		/// Request headers (case insensitive keys)
-		std::map<std::string,std::string,ci_less> headers;
+		std::map<std::string,std::string,util::ci_less> headers;
 		/// Request body
 		std::vector<char> body;
 		

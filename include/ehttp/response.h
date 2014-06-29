@@ -8,7 +8,7 @@
 #include <vector>
 #include <map>
 #include "request.h"
-#include "private/_util.h"
+#include "util.h"
 
 namespace ehttp
 {
@@ -115,7 +115,7 @@ namespace ehttp
 		/// Reason phrase for the status
 		std::string reason;
 		/// Response headers
-		std::map<std::string,std::string,ci_less> headers;
+		std::map<std::string,std::string,util::ci_less> headers;
 		/// Response body for non-chunked transfers
 		std::vector<char> body;
 		
