@@ -26,6 +26,8 @@ namespace ehttp
 	 * This all seemed like a good idea at the time! I was thinking too much
 	 * about the HTTP spec and not enough about the interface usability. Always
 	 * think about the usability.
+	 * 
+	 * @todo Make things return pointers to themselves, to let you chain calls.
 	 */
 	class response : public std::enable_shared_from_this<response>
 	{
