@@ -105,7 +105,7 @@ response::~response()
 	delete p;
 }
 
-void response::begin(uint16_t code, std::string custom_reason)
+std::shared_ptr<response> response::begin(uint16_t code, std::string custom_reason)
 {
 	this->code = code;
 	if(custom_reason.empty())
@@ -114,17 +114,21 @@ void response::begin(uint16_t code, std::string custom_reason)
 		if(it != standard_statuses.end()) reason = it->second;
 		else reason = "???";
 	} else reason = custom_reason;
+	
+	return shared_from_this();
 }
 
-void response::header(std::string name, std::string value)
+std::shared_ptr<response> response::header(std::string name, std::string value)
 {
 	if(p->head_sent)
 		throw std::logic_error("Attempted to modify already sent headers");
 	
 	headers.insert(std::pair<std::string,std::string>(name, value));
+	
+	return shared_from_this();
 }
 
-void response::write(const std::vector<char> &data)
+std::shared_ptr<response> response::write(const std::vector<char> &data)
 {
 	if(!p->body_sent)
 	{
@@ -134,20 +138,23 @@ void response::write(const std::vector<char> &data)
 		}
 		else
 		{
-			std::shared_ptr<chunk> chk = this->begin_chunk();
-			chk->write(data);
-			chk->end();
+			this->begin_chunk()
+				->write(data)
+				->end();
 		}
 	}
 	else
 	{
 		throw std::logic_error("Attempted to write to an already sent response");
 	}
+	
+	return shared_from_this();
 }
 
-void response::write(const std::string &data)
+std::shared_ptr<response> response::write(const std::string &data)
 {
 	this->write(std::vector<char>(data.begin(), data.end()));
+	return shared_from_this();
 }
 
 void response::end()
@@ -194,11 +201,11 @@ std::shared_ptr<response::chunk> response::begin_chunk()
 	return std::make_shared<chunk>(shared_from_this());
 }
 
-void response::make_chunked()
+std::shared_ptr<response> response::make_chunked()
 {
 	// Ignore attempts to make an already chunked response chunked
 	if(p->chunked)
-		return;
+		return shared_from_this();
 	
 	if(!on_head)
 		throw std::runtime_error("response::make_chunked() requires an on_head handler");
@@ -216,6 +223,8 @@ void response::make_chunked()
 		this->body.clear();
 		chk->end();
 	}
+	
+	return shared_from_this();
 }
 
 std::vector<char> response::to_http(bool headers_only)
@@ -237,7 +246,7 @@ std::vector<char> response::to_http(bool headers_only)
 
 
 
-response::chunk::chunk(std::weak_ptr<response> res):
+response::chunk::chunk(std::shared_ptr<response> res):
 	res(res)
 {
 	
@@ -248,24 +257,26 @@ response::chunk::~chunk()
 	
 }
 
-void response::chunk::write(const std::vector<char> &data)
+std::shared_ptr<response::chunk> response::chunk::write(const std::vector<char> &data)
 {
 	body.insert(body.end(), data.begin(), data.end());
+	return shared_from_this();
 }
 
-void response::chunk::write(const std::string &data)
+std::shared_ptr<response::chunk> response::chunk::write(const std::string &data)
 {
 	this->write(std::vector<char>(data.begin(), data.end()));
+	return shared_from_this();
 }
 
-void response::chunk::end()
+std::shared_ptr<response> response::chunk::end()
 {
-	auto res_ptr = res.lock();
-	if(!res_ptr->on_chunk)
+	if(!res->on_chunk)
 		throw std::runtime_error("response::chunk::end() requires an on_chunk handler");
 	
-	res_ptr->make_chunked();
-	res_ptr->on_chunk(res_ptr, shared_from_this(), body);
+	res->make_chunked();
+	res->on_chunk(res, shared_from_this(), body);
+	return res;
 }
 
 std::vector<char> response::chunk::to_http()

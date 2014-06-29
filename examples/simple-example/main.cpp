@@ -5,36 +5,49 @@
 #include <ehttp/request.h>
 #include <ehttp/response.h>
 
+using namespace ehttp;
+
 int main(int argc, const char **argv)
 {
-	ehttp::server srv;
-	ehttp::parser parser;
+	server srv;
+	parser parser;
 	
 	
 	
-	srv.on_data = [&](std::shared_ptr<ehttp::server::connection> connection, void *data, std::size_t size) {
+	srv.on_data = [&](std::shared_ptr<server::connection> connection, void *data, std::size_t size) {
 		//std::cout << std::string(static_cast<char*>(data), size) << std::endl;
-		if(parser.parse_chunk(data, size) == ehttp::parser::got_request)
+		if(parser.parse_chunk(data, size) == parser::got_request)
 		{
-			std::shared_ptr<ehttp::request> req = parser.request();
+			std::shared_ptr<request> req = parser.request();
 			std::cout << "Got a request for " << req->url << std::endl;
 			
-			auto res = std::make_shared<ehttp::response>(req);
-			res->on_end = [](std::shared_ptr<ehttp::response> res) {
-				std::vector<char> http = res->to_http();
-				//std::cout << std::string(http.begin(), http.end()) << std::endl;
+			auto res = std::make_shared<response>(req);
+			res->on_head = [](std::shared_ptr<response> res, std::vector<char> data) {
+				std::cout << "--> on_head" << std::endl;
+				std::cout << std::string(data.begin(), data.end()) << std::endl;
 			};
-			res->on_chunk = [](std::shared_ptr<ehttp::response> res, std::shared_ptr<ehttp::response::chunk> chunk) {
-				std::vector<char> http = chunk->to_http();
-				std::cout << std::string(http.begin(), http.end()) << std::endl;
+			res->on_body = [](std::shared_ptr<response> res, std::vector<char> data) {
+				std::cout << "--> on_body" << std::endl;
+				std::cout << std::string(data.begin(), data.end()) << std::endl;
+			};
+			res->on_chunk = [](std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data) {
+				std::cout << "--> on_chunk" << std::endl;
+				std::cout << std::string(data.begin(), data.end()) << std::endl;
+			};
+			res->on_end = [](std::shared_ptr<response> res) {
+				std::cout << "--> on_end" << std::endl;
 			};
 			
 			try
 			{
-				res->begin(200);
-				res->header("Content-Type", "text/plain");
-				res->write("Lorem ipsum dolor sit amet");
-				res->end();
+				res->begin(200)
+					->header("Content-Type", "text/plain")
+					//->make_chunked()
+					->write("Lorem ipsum dolor sit amet")
+					/*->begin_chunk()
+						->write("Lorem ipsum dolor sit amet")
+						->end()*/
+					->end();
 			}
 			catch(std::exception *e)
 			{

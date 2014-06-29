@@ -46,14 +46,14 @@ namespace ehttp
 		 * clobbering data (possibly setting the wrong status code by accident)
 		 * in the name of symmetry. That'd be pretty dumb.
 		 */
-		void begin(uint16_t code = 200, std::string custom_reason = "");
+		std::shared_ptr<response> begin(uint16_t code = 200, std::string custom_reason = "");
 		
 		/** 
 		 * Sets a header.
 		 * Headers can be modified freely until end() is called.
 		 * @throws std::logic_error if end() has already been called.
 		 */
-		void header(std::string name, std::string value);
+		std::shared_ptr<response> header(std::string name, std::string value);
 		
 		/**
 		 * Appends some data to the response body. Writes a chunk if end() has
@@ -62,9 +62,9 @@ namespace ehttp
 		 * @throws std::logic_error if end() has already been called, and the
 		 * response is not chunked.
 		 */
-		void write(const std::vector<char> &data);
+		std::shared_ptr<response> write(const std::vector<char> &data);
 		/// @overload
-		void write(const std::string &data);
+		std::shared_ptr<response> write(const std::string &data);
 		
 		/**
 		 * Finalizes the response and calls #on_end.
@@ -73,7 +73,6 @@ namespace ehttp
 		 * stream, ending with a call to end_chunked().
 		 * @throws std::runtime_error if #on_end isn't set.
 		 */
-		//void end(bool chunked = false);
 		void end();
 		
 		/**
@@ -93,7 +92,7 @@ namespace ehttp
 		 * You normally don't have to call this yourself, as it will be called
 		 * automatically by chunk::end(). It's mostly exposed for debugging.
 		 */
-		void make_chunked();
+		std::shared_ptr<response> make_chunked();
 		
 		
 		
@@ -147,7 +146,7 @@ namespace ehttp
 		 * This is exposed mainly for unit testing purposes.
 		 * @param res The response the chunk is part of
 		 */
-		chunk(std::weak_ptr<response> res);
+		chunk(std::shared_ptr<response> res);
 		virtual ~chunk();
 		
 		/**
@@ -155,20 +154,20 @@ namespace ehttp
 		 * \todo Make this throw an exception just like response::write() when
 		 * attempting to modify an ended chunk.
 		 */
-		void write(const std::vector<char> &data);
+		std::shared_ptr<response::chunk> write(const std::vector<char> &data);
 		/// @overload
-		void write(const std::string &data);
+		std::shared_ptr<response::chunk> write(const std::string &data);
 		
 		/**
 		 * Ends the response. Calls #res->on_chunk.
 		 * @throws std::runtime_error if #res->on_chunk isn't set.
 		 */
-		void end();
+		std::shared_ptr<response> end();
 		
 		
 		
 		/// The response the chunk is a part of
-		std::weak_ptr<response> res;
+		std::shared_ptr<response> res;
 		/// The chunk body
 		std::vector<char> body;
 		
