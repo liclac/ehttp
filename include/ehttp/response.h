@@ -28,6 +28,8 @@ namespace ehttp
 	 * think about the usability.
 	 * 
 	 * @todo Make things return pointers to themselves, to let you chain calls.
+	 * 
+	 * @todo Generate the Date header.
 	 */
 	class response : public std::enable_shared_from_this<response>
 	{
