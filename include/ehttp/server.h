@@ -220,6 +220,7 @@ namespace ehttp
 		 */
 		void write_next();
 		
+	private:
 		struct impl;
 		impl *p;
 	};
