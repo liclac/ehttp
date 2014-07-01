@@ -32,19 +32,22 @@ int main(int argc, const char **argv)
 			std::cout << "Got a request for " << req->url << std::endl;
 			
 			auto res = std::make_shared<response>(req);
-			res->on_head = [](std::shared_ptr<response> res, std::vector<char> data) {
+			res->on_head = [=](std::shared_ptr<response> res, std::vector<char> data) {
 				std::cout << "--> on_head" << std::endl;
 				std::cout << std::string(data.begin(), data.end()) << std::endl;
+				connection->write(data);
 			};
-			res->on_body = [](std::shared_ptr<response> res, std::vector<char> data) {
+			res->on_body = [=](std::shared_ptr<response> res, std::vector<char> data) {
 				std::cout << "--> on_body" << std::endl;
 				std::cout << std::string(data.begin(), data.end()) << std::endl;
+				connection->write(data);
 			};
-			res->on_chunk = [](std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data) {
+			res->on_chunk = [=](std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data) {
 				std::cout << "--> on_chunk" << std::endl;
 				std::cout << std::string(data.begin(), data.end()) << std::endl;
+				connection->write(data);
 			};
-			res->on_end = [](std::shared_ptr<response> res) {
+			res->on_end = [=](std::shared_ptr<response> res) {
 				std::cout << "--> on_end" << std::endl;
 			};
 			
