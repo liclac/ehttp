@@ -1,0 +1,2 @@
+add_executable(http_server_example main.cpp)
+target_link_libraries(http_server_example ehttp)
