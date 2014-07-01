@@ -117,6 +117,7 @@ struct server::connection::impl
 	tcp::socket socket;
 	
 	std::vector<char> read_buffer;
+	std::deque<std::vector<char>> write_queue;
 	
 	impl(io_service &service):
 		service(service), socket(service)
@@ -139,13 +140,11 @@ server::connection::~connection()
 
 tcp::socket& server::connection::socket() { return p->socket; }
 
-void server::connection::connected()
+void server::connection::write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback)
 {
-	p->retain_self = shared_from_this();
-	
-	p->server->event_connected(shared_from_this());
-	
-	this->read_chunk();
+	p->write_queue.push_back(data);
+	if(p->write_queue.size() == 1)
+		this->write_next();
 }
 
 void server::connection::disconnect()
@@ -164,6 +163,13 @@ void server::connection::disconnect()
 	p->retain_self.reset();
 }
 
+void server::connection::connected()
+{
+	p->retain_self = shared_from_this();
+	p->server->event_connected(shared_from_this());
+	this->read_chunk();
+}
+
 void server::connection::read_chunk()
 {
 	p->socket.async_read_some(asio::buffer(p->read_buffer, kReadBufferSize),
@@ -172,7 +178,6 @@ void server::connection::read_chunk()
 		if(!error)
 		{
 			p->server->event_data(shared_from_this(), &p->read_buffer[0], bytes_transferred);
-			
 			this->read_chunk();
 		}
 		else
@@ -180,5 +185,15 @@ void server::connection::read_chunk()
 			p->server->event_error(error);
 			p->server->event_disconnected(shared_from_this());
 		}
+	});
+}
+
+void server::connection::write_next()
+{
+	std::vector<char> &data = p->write_queue[0];
+	asio::async_write(p->socket, asio::buffer(data), [=](const asio::error_code &error, std::size_t bytes_transferred) {
+		p->write_queue.pop_front();
+		if(p->write_queue.size() > 0)
+			this->write_next();
 	});
 }

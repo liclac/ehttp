@@ -160,7 +160,7 @@ namespace ehttp
 	 * 
 	 * @todo Make it automatically disconnect when the socket is closed
 	 * 
-	 * @todo Make connected() and read_chunk() protected somehow
+	 * @todo Make private-marked functions protected, somehow
 	 */
 	class server::connection : public std::enable_shared_from_this<connection>
 	{
@@ -177,6 +177,13 @@ namespace ehttp
 		tcp::socket& socket();
 		
 		/**
+		 * Writes a chunk of data to the stream.
+		 * The data is copied into an internal write buffer to ensure that it
+		 * stays valid.
+		 */
+		void write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback = nullptr);
+		
+		/**
 		 * Disconnects from the client, and allows the connection to be deleted
 		 * if there are no more references to it.
 		 */
@@ -190,21 +197,29 @@ namespace ehttp
 		
 		
 		/**
-		 * \private (Hide it from Doxygen's output)
-		 * Called when the socket is connected. Only public because it is
-		 * currently necessary due to an implementation detail in \ref server,
-		 * which can change at any time.
+		 * \private
+		 * Called when the socket is connected.
+		 * 
+		 * For internal use only.
 		 */
 		void connected();
 		
 		/**
-		 * \private (Hide it from Doxygen's output)
-		 * Called in a loop to read data form the stream. As with connected(),
-		 * it being public is an implementation detail and subject to change.
+		 * \private
+		 * Called in a loop to read data form the stream.
+		 * 
+		 * For internal use only.
 		 */
 		void read_chunk();
 		
-	private:
+		/**
+		 * \private
+		 * Called from a write() to write the next thing in the write queue.
+		 * 
+		 * For internal use only.
+		 */
+		void write_next();
+		
 		struct impl;
 		impl *p;
 	};
