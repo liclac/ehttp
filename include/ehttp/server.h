@@ -34,13 +34,31 @@ namespace ehttp
 		virtual ~server();
 		
 		/**
-		 * Listens on an endpoint.
+		 * Attempts to listen for incoming connections.
+		 * 
+		 * Note that this is one of the things that are most prone to failing,
+		 * so even if you have no other error checking code, at least check
+		 * the result of this.
+		 * 
+		 * A few examples of cases where listen() may fail:
+		 * - Another application is running on the same port
+		 * - Another instance of your application is already running
+		 * - Your application crashed, and the OS hasn't unbound its port yet
+		 * - You don't have permission to open that port
+		 * - You're on Windows, and your firewall or antivirus is messing with you
+		 * - The underlying implementation may be bugged on your platform
+		 * - Something unrelated to your application just started malfunctioning
+		 * 
+		 * While you can't be expected to be held responsible for any of these,
+		 * you are expected to log an error and return failure if you can't
+		 * bind, rather than just silently malfunctioning.
+		 * 
 		 * @param endpoint The ASIO endpoint to listen on
 		 */
 		asio::error_code listen(const tcp::endpoint &endpoint);
 		
 		/**
-		 * Listens on an address and port.
+		 * Attempts to listen for incoming connections.
 		 * @overload
 		 * @param address The address (0.0.0.0, 127.0.0.1, ...) to listen on
 		 * @param port The port to listen on
@@ -48,7 +66,7 @@ namespace ehttp
 		asio::error_code listen(const std::string &address, const uint16_t &port);
 		
 		/**
-		 * Listens on a port on all addresses.
+		 * Attempts to listen for incoming connections.
 		 * @overload
 		 * @param port The port to listen on
 		 */

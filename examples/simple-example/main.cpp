@@ -103,35 +103,18 @@ int main(int argc, const char **argv)
 	
 	
 	
-	/* 
-	 * Attempt to bind to (listen on) a TCP port; this is one of the things
-	 * that are most prone to failing, so even if you have no other error
-	 * checking code, at least check this one, otherwise your server will
-	 * silently fail to start if anything goes wrong.
-	 * 
-	 * A few examples of cases where listen() may fail:
-	 * - Another application is running on the same port
-	 * - Another instance of your application is already running
-	 * - Your application crashed, and the OS hasn't unbound its port yet
-	 * - You don't have permission to open that port
-	 * - You're on Windows, and your firewall or antivirus is messing with you
-	 * - The underlying implementation may be bugged on your platform
-	 * - Something unrelated to your application just started malfunctioning
-	 * 
-	 * While you can't be expected to be held responsible for any of these, you
-	 * are expected to log an error and return failure if you can't bind,
-	 * rather than just silently malfunctioning.
-	 */
+	// Attempt to bind to (listen on) a port. Note that this may fail!
+	// See the documentation for server::listen() for more details.
 	asio::error_code error = srv.listen(8080);
 	if(!error)
 	{
-		// If it succeeds, log something happy and run until terminated
+		// If it succeeds, print something happy and run until terminated
 		std::cout << "Listening!" << std::endl;
 		srv.run();
 	}
 	else
 	{
-		// Report an error and exit with a nonzero status if it fails
+		// Report an error and exit nonzero (failure) if binding fails
 		std::cout << "Couldn't listen: " << error.message() << std::endl;
 		return 1;
 	}
