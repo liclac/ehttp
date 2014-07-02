@@ -1,12 +1,9 @@
 #include <ehttp/http_server.h>
-#include <ehttp/parser.h>
-#include <ehttp/response.h>
-#include <ehttp/request.h>
-#include <iostream>
 
 // Used by the example on_end below
 /*
 #include <ehttp/url.h>
+#include <iostream>
 #include <ctime>
 */
 
@@ -67,6 +64,10 @@ void http_server::event_data(std::shared_ptr<server::connection> connection, voi
 		};
 		*/
 		
+		// Let the router attempt to handle it first, if it exists
+		if(router) router->route(req, res);
+		
+		// Then fire the request event afterwards
 		event_request(connection, req, res);
 	}
 	

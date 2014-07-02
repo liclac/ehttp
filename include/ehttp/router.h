@@ -36,7 +36,7 @@ namespace ehttp
 		virtual ~router();
 		
 		/// Signature for a handler function
-		typedef std::function<bool(std::shared_ptr<request> req, std::shared_ptr<response> res)> handler_func;
+		typedef std::function<void(std::shared_ptr<request> req, std::shared_ptr<response> res)> handler_func;
 		
 		/**
 		 * Registers a handler function for an endpoint.
@@ -89,67 +89,12 @@ namespace ehttp
 		 * appropriate (see on_error()), and #on_response_end and
 		 * #on_response_chunk otherwise.
 		 */
-		virtual bool route(std::shared_ptr<request> req);
+		virtual void route(std::shared_ptr<request> req, std::shared_ptr<response> res);
 		
 		
 		
 		/// Fallback code if no handler is found (defaults to 404)
 		uint16_t fallback_code;
-		
-		
-		
-		/**
-		 * Called from response::on_head.
-		 * 
-		 * @param res The response
-		 * @param data The HTTP-formatted header data, ready to be written to a stream
-		 */
-		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_response_head;
-		
-		/**
-		 * Called from response::on_body.
-		 * 
-		 * @param res The response
-		 * @param res The response body, ready to be written to a stream
-		 */
-		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_response_body;
-		
-		/**
-		 * Called from response::on_chunk.
-		 * 
-		 * @param res The response
-		 * @param chunk The chunk
-		 * @param data The HTTP-formatted chunk data, ready to be written to a stream
-		 */
-		std::function<void(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data)> on_response_chunk;
-		
-		/**
-		 * Called from response::on_end.
-		 * 
-		 * @param res The response
-		 */
-		std::function<void(std::shared_ptr<response> res)> on_response_end;
-		
-	protected:
-		/// Overridable emitter for #on_response_head
-		virtual void event_response_head(std::shared_ptr<response> res, std::vector<char> data) {
-			if(on_response_head) on_response_head(res, data);
-		}
-		
-		/// Overridable emitter for #on_response_body
-		virtual void event_response_body(std::shared_ptr<response> res, std::vector<char> data) {
-			if(on_response_body) on_response_body(res, data);
-		}
-		
-		/// Overridable emitter for #on_response_chunk
-		virtual void event_response_chunk(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data) {
-			if(on_response_chunk) on_response_chunk(res, chunk, data);
-		}
-		
-		/// Overridable emitter for #on_response_end
-		virtual void event_response_end(std::shared_ptr<response> res) {
-			if(on_response_end) on_response_end(res);
-		}
 		
 	private:
 		struct impl;

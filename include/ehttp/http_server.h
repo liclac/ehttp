@@ -6,6 +6,7 @@
 #include "parser.h"
 #include "request.h"
 #include "response.h"
+#include "router.h"
 
 namespace ehttp
 {
@@ -25,6 +26,11 @@ namespace ehttp
 	{
 	public:
 		using server::server;
+		
+		/**
+		 * Optional router for handling requests.
+		 */
+		std::shared_ptr<router> router;
 		
 		/**
 		 * Callback for when a new request is received.
