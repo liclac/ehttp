@@ -91,7 +91,6 @@ void router::route(std::shared_ptr<request> req, std::shared_ptr<response> res)
 
 void router::wrap_response_handlers(std::shared_ptr<request> req, std::shared_ptr<response> res)
 {
-	// Listen for responses with empty bodies using on_data and on_end
 	auto old_on_data = res->on_data;
 	auto old_on_end = res->on_end;
 	
