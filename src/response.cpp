@@ -183,8 +183,7 @@ void response::end()
 	else
 	{
 		// Chunked connections are terminated by an empty chunk
-		auto chk = this->begin_chunk();
-		event_data(shared_from_this(), chk->to_http());
+		event_data(shared_from_this(), chunk(shared_from_this()).to_http());
 		event_end(shared_from_this());
 	}
 }
@@ -217,6 +216,12 @@ std::shared_ptr<response> response::make_chunked()
 
 std::shared_ptr<response::chunk> response::begin_chunk()
 {
+	// This will be documented if it ever becomes possible to make it happen
+	if(p->head_sent && !p->chunked)
+		throw std::logic_error("Attempted to begin a chunk on a nonchunked response");
+	if(p->ended)
+		throw std::logic_error("Attempted to begin a chunk on an ended response");
+	
 	return std::make_shared<chunk>(shared_from_this());
 }
 

@@ -117,6 +117,8 @@ namespace ehttp
 		 * just don't call chunk::end_chunk() on it.\n
 		 * Chunks keep a std::shared_ptr to their parent response, which means
 		 * that the response will not be destroyed until all of its chunks are.
+		 * 
+		 * @throws std::logic_error if the response has already ended
 		 */
 		std::shared_ptr<chunk> begin_chunk();
 		
