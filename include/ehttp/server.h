@@ -179,8 +179,6 @@ namespace ehttp
 	 * disconnect() on it to prevent it from just laying around.
 	 * 
 	 * @todo Make it automatically disconnect when the socket is closed
-	 * 
-	 * @todo Make private-marked functions protected, somehow
 	 */
 	class server::connection : public std::enable_shared_from_this<connection>
 	{

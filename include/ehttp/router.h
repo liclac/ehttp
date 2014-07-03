@@ -15,18 +15,10 @@ namespace ehttp
 	 * installs its own callbacks in responses that then call yours if
 	 * appropriate.
 	 * 
-	 * @todo Make an "abstract router" kind of class, that doesn't have an
-	 * opinion on how things are routed, then make path routers able to mount
-	 * other routers where it makes sense.\n
-	 * That'll let higher-level code more easily implement other routing styles
-	 * without having to squeeze it into a global dictionary of paths (think
-	 * MVC routing), and let you mount other routing styles onto each other
-	 * where it makes sense.
+	 * @todo Rails-style placeholders in routes.
 	 * 
-	 * @todo Placeholders in routes, probably Flask-style placeholders. C++11
-	 * offers regular expressions, use that.
-	 * 
-	 * @todo Actually implement this!
+	 * @todo A `mountpoint` class that can be mounted onto arbitrary points in
+	 * the tree, handling any request to antyhing under it.
 	 */
 	class router
 	{
