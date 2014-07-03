@@ -183,14 +183,12 @@ void response::end()
 		p->head_sent = true;
 		p->body_sent = true;
 		
-		event_data(shared_from_this(), this->to_http(true));
-		event_data(shared_from_this(), body);
+		event_data(shared_from_this(), this->to_http());
 		event_end(shared_from_this());
 	}
 	else
 	{
 		// Chunked connections are terminated by an empty chunk
-		
 		auto chk = this->begin_chunk();
 		event_data(shared_from_this(), chk->to_http());
 		event_end(shared_from_this());
@@ -235,19 +233,29 @@ bool response::is_chunked() const
 
 std::vector<char> response::to_http(bool headers_only)
 {
-	// @todo Skip the whole stringstream step and all the copying
 	std::stringstream ss;
 	
+	// Status line
 	ss << "HTTP/1.1 " << code << " " << reason << "\r\n";
+	
+	// Headers
 	for(auto it = headers.begin(); it != headers.end(); it++)
 		ss << it->first << ": " << it->second << "\r\n";
+	
+	// A blank line terminates the header section
 	ss << "\r\n";
 	
-	if(!headers_only)
-		ss << std::string(body.begin(), body.end());
 	
-	std::string str = ss.str();
-	return std::vector<char>(str.begin(), str.end());
+	
+	// Build a vector!
+	std::string headers_str = ss.str();
+	std::vector<char> data(headers_str.begin(), headers_str.end());
+	
+	// Append the body if we're not going for only the headers
+	if(!headers_only)
+		data.insert(data.end(), body.begin(), body.end());
+	
+	return data;
 }
 
 
@@ -301,6 +309,12 @@ std::shared_ptr<response> response::chunk::end_chunk()
 
 std::vector<char> response::chunk::to_http()
 {
+	/*
+	 * Chunks are in the format:
+	 * <size, hex without 0x>\r\n
+	 * <data>\r\n
+	 */
+	
 	std::string hex_size = util::to_hex(body.size());
 	std::string crlf = "\r\n";
 	
