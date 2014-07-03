@@ -68,7 +68,8 @@ int main(int argc, const char **argv)
 				//->make_chunked()
 				
 				// Write some data!
-				->write("Lorem ipsum dolor sit amet")
+				->write("Lorem ipsum do")
+				->write("lor sit amet")
 				
 				// You can also explicitly create chunks; writing one out with
 				// end_chunk() will automatically make the response chunked if
