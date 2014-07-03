@@ -3,6 +3,8 @@
 
 #include <functional>
 #include <string>
+#include <locale>
+#include <chrono>
 #include <cstring>
 #include <sstream>
 #include "private/_shiv.h"
