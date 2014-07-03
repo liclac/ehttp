@@ -55,26 +55,17 @@ namespace ehttp
 		/**
 		 * Registers a handler for a status code, for displaying error pages.
 		 * 
-		 * These handlers are called when response::end() is called, but only if:
+		 * If an empty, non-chunked response is returned from a handler called
+		 * by route(), and a status handler is registered for the returned
+		 * status code (or #fallback_code if no handler that calls
+		 * response::begin() is found), that status handler will be called with
+		 * the same request and response as was passed to the original handler.
 		 * 
-		 * * There is a handler for the status code of the ending response
-		 * * The response has no body
-		 * * The response is not chunked
+		 * This is intended to be used to let you fire standard error pages
+		 * with something along the lines of:
 		 * 
-		 * In other words, this gives you a way to provide default contents for
-		 * empty responses based on their status. The intention is that you
-		 * should be able to display an error page by returning an empty
-		 * response with a status set, and setting a handler for that status.
-		 * 
-		 * Note that the response handed to a status handler will be the same
-		 * as the one returned from the route handler; this means that calling
-		 * `res->begin(0)` will reuse the status code and reason.\n
-		 * Doing this is good practice, as it means you won't accidentally
-		 * return the wrong status code or clobber a custom reason phrase.
-		 * 
-		 * As with on(), only one handler can be registered for a status, and
-		 * registering `std::nullptr` or `0` for a status will remove a
-		 * registered custom handler.
+		 *     res->begin(403)
+		 *         ->end()
 		 */
 		virtual void on_error(uint16_t code, handler_func handler);
 		
@@ -84,10 +75,6 @@ namespace ehttp
 		 * It will attempt to find a handler matching the request's endpoint,
 		 * or fire an empty response using #fallback_code to trigger a status
 		 * handler if none is found.
-		 * 
-		 * The response is prepared so that it will call a status handler when
-		 * appropriate (see on_error()), and #on_response_end and
-		 * #on_response_chunk otherwise.
 		 */
 		virtual void route(std::shared_ptr<request> req, std::shared_ptr<response> res);
 		
