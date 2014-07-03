@@ -72,3 +72,19 @@ TEST_CASE("Parsing POST requests")
 		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == parser::got_request);
 	}
 }
+
+TEST_CASE("Parsing invalid requests")
+{
+	parser p;
+	
+	SECTION("Parsing some junk data")
+	{
+		REQUIRE(p.parse_chunk(junk, strlen(junk)) == parser::error);
+	}
+	
+	SECTION("Parsing some valid requests afterwards")
+	{
+		REQUIRE(p.parse_chunk(valid_GET, strlen(valid_GET)) == parser::got_request);
+		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == parser::got_request);
+	}
+}
