@@ -38,7 +38,7 @@ namespace ehttp
 		 * 
 		 * @see request()
 		 */
-		parser::status parse_chunk(void *data, std::size_t length);
+		parser::status parse_chunk(const char *data, std::size_t length);
 		
 		/**
 		 * Retreive the parsed request.

@@ -69,7 +69,7 @@ parser::~parser()
 	delete p;
 }
 
-parser::status parser::parse_chunk(void *data, std::size_t length)
+parser::status parser::parse_chunk(const char *data, std::size_t length)
 {
 	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(p->parser->data);
 	
