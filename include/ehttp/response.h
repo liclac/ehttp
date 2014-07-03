@@ -37,8 +37,6 @@ namespace ehttp
 	 * chunked, otherwise add to a buffer.\n
 	 * Chunked calls will make the response chunked if it's not, immediately
 	 * writing a chunk consisting of any data written using non-chunked calls.
-	 * 
-	 * @todo Generate the Date header.
 	 */
 	class response : public std::enable_shared_from_this<response>
 	{
