@@ -199,7 +199,8 @@ void server::connection::read_chunk()
 		}
 		else
 		{
-			p->server->event_error(error);
+			if(error != asio::error::eof && error != asio::error::connection_reset)
+				p->server->event_error(error);
 			p->server->event_disconnected(shared_from_this());
 		}
 	});

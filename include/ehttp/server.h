@@ -175,8 +175,6 @@ namespace ehttp
 	 * preventing it from getting deleted until it has disconnected.\n
 	 * When you are done with a connection, you should thus always call
 	 * disconnect() on it to prevent it from just laying around.
-	 * 
-	 * @todo Make it automatically disconnect when the socket is closed
 	 */
 	class server::connection : public std::enable_shared_from_this<connection>
 	{
