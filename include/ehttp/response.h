@@ -139,6 +139,11 @@ namespace ehttp
 		 */
 		std::shared_ptr<chunk> begin_chunk();
 		
+		/**
+		 * Is the current response chunked?
+		 */
+		bool is_chunked() const;
+		
 		
 		
 		/**

@@ -240,6 +240,11 @@ std::shared_ptr<response::chunk> response::begin_chunk()
 	return std::make_shared<chunk>(shared_from_this());
 }
 
+bool response::is_chunked() const
+{
+	return p->chunked;
+}
+
 std::vector<char> response::to_http(bool headers_only)
 {
 	// @todo Skip the whole stringstream step and all the copying
