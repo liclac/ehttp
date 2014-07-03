@@ -34,15 +34,15 @@ namespace ehttp
 		 * Registers a handler function for an endpoint.
 		 * 
 		 * Only one handler can be registered for any one endpoint (defined as
-		 * a unique pair of a method and route), and a handler can be
+		 * a unique combination of a method and path), and a handler can be
 		 * unregistered if you so desire by registering `std::nullptr` (or `0`)
 		 * for an endpoint.
 		 * 
 		 * @param method The method to respond to (eg. GET, POST, ...)
-		 * @param route The path to handle (eg. /, /about/, ...)
+		 * @param path The path to handle (eg. /, /about/, ...)
 		 * @param handler The handler function to call
 		 */
-		virtual void on(std::string method, std::string route, handler_func handler);
+		virtual void on(std::string method, std::string path, handler_func handler);
 		
 		/**
 		 * Registers a handler for a status code, for displaying error pages.
@@ -74,6 +74,22 @@ namespace ehttp
 		
 		/// Fallback code if no handler is found (defaults to 404)
 		uint16_t fallback_code;
+		
+	protected:
+		/**
+		 * Wrap a response's handlers.
+		 * 
+		 * This registers handlers that call status handlers where appropriate,
+		 * then the original handlers.
+		 * 
+		 * Note that the wrapper handlers will in some cases set the response's
+		 * handlers several times from within themselves for performance, and
+		 * once a response has been wrapped, you should never rely on the value
+		 * of the on_data and on_end variables.
+		 * 
+		 * @see on_error
+		 */
+		void wrap_response_handlers(std::shared_ptr<request> req, std::shared_ptr<response> res);
 		
 	private:
 		struct impl;

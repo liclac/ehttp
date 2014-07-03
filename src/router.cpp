@@ -9,7 +9,7 @@ using namespace ehttp;
 /// \private
 struct router::impl
 {
-	// Route handlers are indexed as <method, <route, handler> >
+	// Route handlers are indexed as <method, <path, handler> >
 	std::map<std::string,std::map<std::string,handler_func>> handlers;
 	std::map<uint16_t,handler_func> status_handlers;
 	
@@ -29,9 +29,9 @@ router::~router()
 	
 }
 
-void router::on(std::string method, std::string route, handler_func handler)
+void router::on(std::string method, std::string path, handler_func handler)
 {
-	p->handlers[method][route] = handler;
+	p->handlers[method][path] = handler;
 }
 
 void router::on_error(uint16_t code, handler_func handler)
@@ -45,6 +45,52 @@ void router::route(std::shared_ptr<request> req, std::shared_ptr<response> res)
 	if(!res->on_data)
 		throw std::runtime_error("router::route() response lacks on_data");
 	
+	// Set callbacks that call status handlers where appropriate
+	auto old_on_data = res->on_data;
+	auto old_on_end = res->on_end;
+	wrap_response_handlers(req, res);
+	
+	// Extract only the path component; note that the HTTP specs say requests
+	// may contain anything from only the path to a full URL.
+	std::string path = url(req->url).path;
+	
+	/*
+	 * Routes are indexed as "handlers[method][path] = handler".
+	 * We can't retreive them with [], that would create an empty std::function
+	 * for every request we receive that doesn't have a handler.
+	 */
+	bool handler_found = false;
+	auto method_it = p->handlers.find(req->method);
+	if(method_it != p->handlers.end())
+	{
+		auto route_it = method_it->second.find(path);
+		if(route_it != method_it->second.end() && route_it->second)
+		{
+			handler_found = true;
+			route_it->second(req, res);
+		}
+	}
+	
+	// If no handler is found, attempt to use the handler for #fallback_code
+	if(!handler_found)
+	{
+		res->code = this->fallback_code;
+		
+		auto status_handler_it = p->status_handlers.find(res->code);
+		if(status_handler_it != p->status_handlers.end() && status_handler_it->second)
+		{
+			// Don't use our newly installed on_data and on_end, as that could
+			// create an infinite loop of handler calls in some circumstances.
+			res->on_data = old_on_data;
+			res->on_end = old_on_end;
+			
+			status_handler_it->second(req, res);
+		}
+	}
+}
+
+void router::wrap_response_handlers(std::shared_ptr<request> req, std::shared_ptr<response> res)
+{
 	// Listen for responses with empty bodies using on_data and on_end
 	auto old_on_data = res->on_data;
 	auto old_on_end = res->on_end;
@@ -112,46 +158,4 @@ void router::route(std::shared_ptr<request> req, std::shared_ptr<response> res)
 		// Either way, call whatever function is now in on_data
 		res->on_data(res, data);
 	};
-	
-	/*
-	 * Extract only the path component; note that the HTTP specs say requests
-	 * may contain anything from only the path to a full URL.
-	 */
-	std::string path = url(req->url).path;
-	
-	/*
-	 * Routes are indexed as "handlers[method][route] = handler".
-	 * We can't retreive them with [], that would create an empty std::function
-	 * for every request we receive that doesn't have a handler.
-	 */
-	bool handler_found = false;
-	auto method_it = p->handlers.find(req->method);
-	if(method_it != p->handlers.end())
-	{
-		auto route_it = method_it->second.find(path);
-		if(route_it != method_it->second.end() && route_it->second)
-		{
-			handler_found = true;
-			route_it->second(req, res);
-		}
-	}
-	
-	// If no handler is found, attempt to use the handler for #fallback_code
-	if(!handler_found)
-	{
-		res->code = this->fallback_code;
-		
-		auto status_handler_it = p->status_handlers.find(res->code);
-		if(status_handler_it != p->status_handlers.end() && status_handler_it->second)
-		{
-			/*
-			 * Don't use our newly installed on_data and on_end, as that could
-			 * create an infinite loop of handler calls in some circumstances.
-			 */
-			res->on_data = old_on_data;
-			res->on_end = old_on_end;
-			
-			status_handler_it->second(req, res);
-		}
-	}
 }
