@@ -1,5 +1,6 @@
 #include <sstream>
 #include <bitset>
+#include <cstring>
 #include <ehttp/url.h>
 #include "../vendor/http-parser/http_parser.h"
 
