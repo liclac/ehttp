@@ -285,6 +285,13 @@ std::shared_ptr<response::chunk> response::chunk::write(const std::string &data)
 
 std::shared_ptr<response> response::chunk::end_chunk()
 {
+	/*
+	 * Ignore attempts to end an empty chunk; an empty chunk marks the end of
+	 * a chunked transfer. To write the terminating chunk, use response::end().
+	 */
+	if(body.size() == 0)
+		return;
+	
 	if(!res->on_data)
 		throw std::runtime_error("response::chunk::end() requires an on_data handler");
 	
