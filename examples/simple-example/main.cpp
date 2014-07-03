@@ -28,7 +28,7 @@ int main(int argc, const char **argv)
 	
 	
 	// Handle data received on connections
-	srv.on_data = [&](std::shared_ptr<server::connection> connection, void *data, std::size_t size) {
+	srv.on_data = [&](std::shared_ptr<server::connection> connection, const char *data, std::size_t size) {
 		// If you want to log the raw received data:
 		//std::cout << std::string(static_cast<char*>(data), size) << std::endl;
 		

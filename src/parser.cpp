@@ -79,7 +79,7 @@ parser::status parser::parse_chunk(const char *data, std::size_t length)
 		ctx->request = 0;
 	}
 	
-	std::size_t nparsed = http_parser_execute(p->parser, &ehttp_parser_parser_settings, static_cast<char*>(data), length);
+	std::size_t nparsed = http_parser_execute(p->parser, &ehttp_parser_parser_settings, data, length);
 	if(p->parser->upgrade)
 	{
 		ctx->request->upgrade = true;

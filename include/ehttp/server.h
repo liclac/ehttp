@@ -112,7 +112,7 @@ namespace ehttp
 		 * @param data Pointer to the response data; this is only guaranteed to be valid until this callback returns
 		 * @param size Size of the response data
 		 */
-		std::function<void(std::shared_ptr<server::connection> connection, void *data, std::size_t size)> on_data;
+		std::function<void(std::shared_ptr<server::connection> connection, const char *data, std::size_t size)> on_data;
 		
 		/**
 		 * Callback for when a connection is disconnected.
@@ -147,7 +147,7 @@ namespace ehttp
 		}
 		
 		/// Overridable emitter for #on_data
-		virtual void event_data(std::shared_ptr<server::connection> connection, void *data, std::size_t size) {
+		virtual void event_data(std::shared_ptr<server::connection> connection, const char *data, std::size_t size) {
 			if(on_data) on_data(connection, data, size);
 		}
 		

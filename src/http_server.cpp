@@ -25,7 +25,7 @@ void http_server::event_disconnected(std::shared_ptr<server::connection> connect
 	server::event_disconnected(connection);
 }
 
-void http_server::event_data(std::shared_ptr<server::connection> connection, void *data, std::size_t size)
+void http_server::event_data(std::shared_ptr<server::connection> connection, const char *data, std::size_t size)
 {
 	// std::map's operator[] implicitly creates an object if it doesn't exist,
 	// and then returns a reference to it. Thus, no need to do it manually!

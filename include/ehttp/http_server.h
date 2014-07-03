@@ -49,7 +49,7 @@ namespace ehttp
 		
 		virtual void event_connected(std::shared_ptr<server::connection> connection) override;
 		virtual void event_disconnected(std::shared_ptr<server::connection> connection) override;
-		virtual void event_data(std::shared_ptr<server::connection> connection, void *data, std::size_t size) override;
+		virtual void event_data(std::shared_ptr<server::connection> connection, const char *data, std::size_t size) override;
 		virtual void event_error(asio::error_code error) override;
 		
 		/// Struct for keeping context data
