@@ -2,6 +2,7 @@
 #include <catch.hpp>
 
 #include <iostream>
+#include <stdexcept>
 #include <ehttp/response.h>
 
 using namespace ehttp;
@@ -97,5 +98,60 @@ TEST_CASE("Test callback counts")
 			->end();
 		
 		verify_and_reset(1 + 3 + 1);
+	}
+}
+
+TEST_CASE("Test exceptions")
+{
+	std::shared_ptr<response> res = std::make_shared<response>();
+	
+	SECTION("Attempt end() with no callbacks")
+	{
+		res->begin();
+		REQUIRE_THROWS_AS(res->end(), std::runtime_error);
+	}
+	
+	SECTION("Attempt make_chunked() with no callbacks")
+	{
+		res->begin();
+		REQUIRE_THROWS_AS(res->make_chunked(), std::runtime_error);
+		REQUIRE_THROWS_AS(res->end(), std::runtime_error);
+	}
+	
+	
+	
+	// Just set a callback that discards incoming data
+	res->on_data = [=](std::shared_ptr<response>, std::vector<char>) {};
+	
+	
+	
+	SECTION("Attempt to write to an ended response")
+	{
+		res->begin()->end();
+		
+		REQUIRE_THROWS_AS(res->write("Lorem ipsum dolor sit amet"), std::logic_error);
+	}
+	
+	SECTION("Attempt to make an ended response chunked")
+	{
+		res->begin()->end();
+		REQUIRE_THROWS_AS(res->make_chunked(), std::logic_error);
+	}
+	
+	SECTION("Attempt to make chunks on an ended response")
+	{
+		res->begin()->end();
+		
+		REQUIRE_THROWS_AS(res->begin_chunk(), std::logic_error);
+	}
+	
+	SECTION("Attempt to write a chunk to an ended response")
+	{
+		res->begin();
+		auto chk = res->begin_chunk();
+		res->end();
+		
+		chk->write("Lorem ipsum dolor sit amet");
+		REQUIRE_THROWS_AS(chk->end_chunk(), std::logic_error);
 	}
 }
