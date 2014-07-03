@@ -213,8 +213,8 @@ namespace ehttp
 		
 		/**
 		 * Appends data to the chunk body.
-		 * \todo Make this throw an exception just like response::write() when
-		 * attempting to modify an ended chunk.
+		 * 
+		 * @throws std::logic_error if end() has already been called.
 		 */
 		std::shared_ptr<response::chunk> write(const std::vector<char> &data);
 		/// @overload
@@ -259,6 +259,10 @@ namespace ehttp
 		std::shared_ptr<response> res;
 		/// The chunk body
 		std::vector<char> body;
+		
+	protected:
+		/// Whether the chunk has already ended
+		bool ended;
 	};
 }
 

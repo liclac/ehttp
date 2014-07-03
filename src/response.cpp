@@ -273,6 +273,9 @@ response::chunk::~chunk()
 
 std::shared_ptr<response::chunk> response::chunk::write(const std::vector<char> &data)
 {
+	if(ended)
+		throw std::logic_error("Attempted to write to an already ended chunk");
+	
 	body.insert(body.end(), data.begin(), data.end());
 	return shared_from_this();
 }
@@ -285,18 +288,22 @@ std::shared_ptr<response::chunk> response::chunk::write(const std::string &data)
 
 std::shared_ptr<response> response::chunk::end_chunk()
 {
-	/*
-	 * Ignore attempts to end an empty chunk; an empty chunk marks the end of
-	 * a chunked transfer. To write the terminating chunk, use response::end().
-	 */
+	// Ignore attempts to end an already ended chunk
+	if(ended)
+		return;
+	
+	// Ignore attempts to end an empty chunk, to prevent premature termination
 	if(body.size() == 0)
 		return;
 	
 	if(!res->on_data)
 		throw std::runtime_error("response::chunk::end() requires an on_data handler");
 	
+	ended = true;
+	
 	res->make_chunked();
 	res->event_data(res, this->to_http());
+	
 	return res;
 }
 
