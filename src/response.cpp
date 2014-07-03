@@ -116,20 +116,14 @@ std::shared_ptr<response> response::begin(uint16_t code, std::string custom_reas
 			else reason = "???";
 		} else reason = custom_reason;
 	}
-	else
-	{
-		if(p->chunked)
-			throw std::logic_error("Can't reuse a chunked response");
-		
-		// Note that if any part of the response has already been sent to the
-		// client, reusing it will likely result in a corrupted response
-		p->head_sent = false;
-		p->body_sent = false;
-		p->ended = false;
-		
-		headers.clear();
-		body.clear();
-	}
+	
+	p->chunked = false;
+	p->head_sent = false;
+	p->body_sent = false;
+	p->ended = false;
+	
+	headers.clear();
+	body.clear();
 	
 	return shared_from_this();
 }
@@ -229,23 +223,6 @@ std::shared_ptr<response::chunk> response::begin_chunk()
 bool response::is_chunked() const
 {
 	return p->chunked;
-}
-
-void response::clear(bool exclude_handlers)
-{
-	delete p;
-	p = new impl;
-	
-	code = 0;
-	reason.clear();
-	headers.clear();
-	body.clear();
-	
-	if(!exclude_handlers)
-	{
-		on_data = nullptr;
-		on_end = nullptr;
-	}
 }
 
 std::vector<char> response::to_http(bool headers_only)

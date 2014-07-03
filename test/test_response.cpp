@@ -37,14 +37,12 @@ TEST_CASE("Test callback counts")
 	/*
 	 * Verifies that the on_data_count is what it's expected to be, and that
 	 * on_end_count is 1 (since if it's not, you forgot a verify_and_reset(),
-	 * or something isn't working properly), then reset the response and the
-	 * handlers, but keep the handlers intact (response::clear()'s parameter).
+	 * or something isn't working properly), then reset the counters.
 	 */
 	auto verify_and_reset = [&](int expected_data_count) {
 		CHECK(on_data_count == expected_data_count);
 		REQUIRE(on_end_count == 1);
 		
-		res->clear(true);
 		on_data_count = 0;
 		on_end_count = 0;
 	};

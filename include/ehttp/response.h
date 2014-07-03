@@ -56,20 +56,14 @@ namespace ehttp
 		 * reason phrase associated with the response code ("OK" for 200, "Not
 		 * Found" for 404, "Internal Server Error" for 500, etc.) is used.
 		 * 
-		 * Calling `begin(0)` will reuse the response, resetting the contents
-		 * while keeping the already set response code and reason phrase.\n
-		 * This is used mainly to allow status handlers to work on a clean
-		 * response, but without clobbering the previously set response code
-		 * and reason phrase.
+		 * Calling `begin()` will clear the response if there is data in it
+		 * already; you should only use this if you know it's safe, and be sure
+		 * to discard any buffers.
 		 * 
-		 * Note that you can't reuse chunked response (because there could
-		 * still be chunks waiting to be written, which would result in a
-		 * corrupted response), and reusing __reusing a response assumes that
-		 * you have made sure not to write any data to the client__, as it
-		 * would otherwise result in a partial or double response being sent.
-		 * 
-		 * @throws std::logic_error if `begin(0)` is called, but the response
-		 * is chunked.
+		 * A far more useful thing to do is to call `begin(0)`, which will
+		 * clear only the contents, while keeping the status code and reason
+		 * phrase. This is intended for use with status handlers, as is done in
+		 * \ref router.
 		 */
 		std::shared_ptr<response> begin(uint16_t code = 200, std::string custom_reason = "");
 		
@@ -130,18 +124,6 @@ namespace ehttp
 		 * Is the current response chunked?
 		 */
 		bool is_chunked() const;
-		
-		/**
-		 * Clears all public and private state.
-		 * 
-		 * Normally, you really don't want to do this, but it's useful for unit
-		 * testing, since it will let you reuse the same response object for
-		 * multiple tests.
-		 * 
-		 * @param exclude_handlers Don't clear handlers; useful for performing
-		 * multiple tests with different data, but the same behavior.
-		 */
-		void clear(bool exclude_handlers = false);
 		
 		
 		
