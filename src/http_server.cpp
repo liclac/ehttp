@@ -34,7 +34,7 @@ void http_server::event_data(std::shared_ptr<server::connection> connection, con
 	// Parse until we get a request; note: we need one parser per connection!
 	if(ctx.psr.parse_chunk(data, size) == parser::got_request)
 	{
-		std::shared_ptr<request> req = ctx.psr.request();
+		std::shared_ptr<request> req = ctx.psr.req();
 		std::shared_ptr<response> res = std::make_shared<response>(req);
 		
 		// Just set up the response to feed written data back to the connection

@@ -48,7 +48,7 @@ namespace ehttp
 		 * when a request is returned, you should store it elsewhere, since it
 		 * will be cleared the next time data is received from the client.
 		 */
-		std::shared_ptr<request> request();
+		std::shared_ptr<request> req();
 		
 	private:
 		struct impl;

@@ -91,7 +91,7 @@ parser::status parser::parse_chunk(const char *data, std::size_t length)
 	return (ctx->done ? got_request : keep_going);
 }
 
-std::shared_ptr<request> parser::request()
+std::shared_ptr<request> parser::req()
 {
 	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(p->parser->data);
 	return ctx->request;

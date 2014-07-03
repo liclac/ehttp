@@ -36,7 +36,7 @@ int main(int argc, const char **argv)
 		std::shared_ptr<parser> parser = parsers[connection];
 		if(parser->parse_chunk(data, size) == parser::got_request)
 		{
-			auto req = parser->request();
+			auto req = parser->req();
 			auto res = std::make_shared<response>(req);
 			
 			std::cout << "Got a request for " << req->url << std::endl;

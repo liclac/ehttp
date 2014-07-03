@@ -38,7 +38,7 @@ TEST_CASE("Parsing GET requests")
 	{
 		REQUIRE(p.parse_chunk(valid_GET, strlen(valid_GET)) == parser::got_request);
 		
-		std::shared_ptr<request> req = p.request();
+		std::shared_ptr<request> req = p.req();
 		CHECK(req->method == "GET");
 		CHECK(req->url == "/path?q1=abc&q2=123");
 		CHECK(req->headers["Host"] == "example.com");
@@ -59,7 +59,7 @@ TEST_CASE("Parsing POST requests")
 	{
 		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == parser::got_request);
 		
-		std::shared_ptr<request> req = p.request();
+		std::shared_ptr<request> req = p.req();
 		CHECK(req->method == "POST");
 		CHECK(req->url == "/something/");
 		CHECK(req->headers["Host"] == "example.net");
