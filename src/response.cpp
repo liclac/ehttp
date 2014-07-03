@@ -290,11 +290,11 @@ std::shared_ptr<response> response::chunk::end_chunk()
 {
 	// Ignore attempts to end an already ended chunk
 	if(ended)
-		return;
+		return res;
 	
 	// Ignore attempts to end an empty chunk, to prevent premature termination
 	if(body.size() == 0)
-		return;
+		return res;
 	
 	if(!res->on_data)
 		throw std::runtime_error("response::chunk::end() requires an on_data handler");
