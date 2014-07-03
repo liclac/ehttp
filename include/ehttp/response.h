@@ -172,51 +172,27 @@ namespace ehttp
 		
 		
 		/**
-		 * Callback for end().
+		 * Called whenever there is data to be written.
 		 * 
 		 * @param res The response
-		 * @param data The HTTP-formatted header data, ready to be written to a stream
+		 * @param chunk The associated chunk, a null pointer if there is none
+		 * @param data HTTP-formatted data, ready to be written to a stream
 		 */
-		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_head;
+		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_data;
 		
 		/**
-		 * Callback for end() for non-chunked responses.
+		 * Called when a response has ended.
 		 * 
-		 * @param res The response
-		 * @param res The response body, ready to be written to a stream
-		 */
-		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_body;
-		
-		/**
-		 * Callback for chunk::end_chunk().
-		 * 
-		 * @param res The response
-		 * @param chunk The chunk
-		 * @param data The HTTP-formatted chunk data, ready to be written to a stream
-		 */
-		std::function<void(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data)> on_chunk;
-		
-		/**
-		 * Callback for end().
+		 * @see end()
 		 * 
 		 * @param res The response
 		 */
 		std::function<void(std::shared_ptr<response> res)> on_end;
 		
 	protected:
-		/// Overridable emitter for #on_head
-		virtual void event_head(std::shared_ptr<response> res, std::vector<char> data) {
-			if(on_head) on_head(res, data);
-		}
-		
-		/// Overridable emitter for #on_body
-		virtual void event_body(std::shared_ptr<response> res, std::vector<char> data) {
-			if(on_body) on_body(res, data);
-		}
-		
 		/// Overridable emitter for #on_chunk
-		virtual void event_chunk(std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data) {
-			if(on_chunk) on_chunk(res, chunk, data);
+		virtual void event_data(std::shared_ptr<response> res, std::vector<char> data) {
+			if(on_data) on_data(res, data);
 		}
 		
 		/// Overridable emitter for #on_end

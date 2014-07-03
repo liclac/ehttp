@@ -119,12 +119,14 @@ std::shared_ptr<response> response::begin(uint16_t code, std::string custom_reas
 	}
 	else
 	{
-		if(p->ended)
-			throw std::logic_error("Can't reuse an already sent response");
-		if(p->head_sent || p->body_sent)
-			throw std::logic_error("Can't reuse a partially sent response");
 		if(p->chunked)
 			throw std::logic_error("Can't reuse a chunked response");
+		
+		// Note that if any part of the response has already been sent to the
+		// client, reusing it will likely result in a corrupted response
+		p->head_sent = false;
+		p->body_sent = false;
+		p->ended = false;
 		
 		headers.clear();
 		body.clear();
@@ -180,33 +182,32 @@ void response::end()
 	
 	if(!p->chunked)
 	{
-		if(!on_head)
-			throw std::runtime_error("response::end() for non-chunked responses requires an on_head handler");
-		if(!on_body)
-			throw std::runtime_error("response::end() for non-chunked responses requires an on_body handler");
+		if(!on_data)
+			throw std::runtime_error("response::end() for non-chunked responses requires an on_data handler");
 		
 		this->header("Content-Length", std::to_string(body.size()));
 		
-		event_head(shared_from_this(), this->to_http(true));
 		p->head_sent = true;
+		event_data(shared_from_this(), this->to_http(true));
 		
-		event_body(shared_from_this(), body);
 		p->body_sent = true;
+		event_data(shared_from_this(), body);
 		
+		p->ended = true;
 		event_end(shared_from_this());
 	}
 	else
 	{
-		if(!on_chunk)
-			throw std::runtime_error("response::end() for chunked responses requires an on_chunk handler");
+		if(!on_data)
+			throw std::runtime_error("response::end() for chunked responses requires an on_data handler");
 		
 		// Chunked connections are terminated by an empty chunk
-		event_chunk(shared_from_this(), this->begin_chunk(), std::vector<char>());
+		auto chk = this->begin_chunk();
+		event_data(shared_from_this(), chk->to_http());
 		
+		p->ended = true;
 		event_end(shared_from_this());
 	}
-	
-	p->ended = true;
 }
 
 std::shared_ptr<response> response::make_chunked()
@@ -215,14 +216,14 @@ std::shared_ptr<response> response::make_chunked()
 	if(p->chunked)
 		return shared_from_this();
 	
-	if(!on_head)
-		throw std::runtime_error("response::make_chunked() requires an on_head handler");
+	if(!on_data)
+		throw std::runtime_error("response::make_chunked() requires an on_data handler");
 	
 	p->chunked = true;
 	this->header("Transfer-Encoding", "chunked");
 	
-	event_head(shared_from_this(), this->to_http(true));
 	p->head_sent = true;
+	event_data(shared_from_this(), this->to_http(true));
 	
 	if(this->body.size() > 0)
 	{
@@ -289,11 +290,11 @@ std::shared_ptr<response::chunk> response::chunk::write(const std::string &data)
 
 std::shared_ptr<response> response::chunk::end_chunk()
 {
-	if(!res->on_chunk)
-		throw std::runtime_error("response::chunk::end() requires an on_chunk handler");
+	if(!res->on_data)
+		throw std::runtime_error("response::chunk::end() requires an on_data handler");
 	
 	res->make_chunked();
-	res->event_chunk(res, shared_from_this(), body);
+	res->event_data(res, this->to_http());
 	return res;
 }
 
