@@ -281,7 +281,8 @@ std::vector<char> response::to_http(bool headers_only)
 
 
 response::chunk::chunk(std::shared_ptr<response> res):
-	res(res)
+	res(res),
+	ended(false)
 {
 	
 }
