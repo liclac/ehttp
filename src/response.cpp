@@ -238,6 +238,9 @@ std::vector<char> response::to_http(bool headers_only)
 	// Status line
 	ss << "HTTP/1.1 " << code << " " << reason << "\r\n";
 	
+	// Generate the Date header on the fly
+	ss << "Date: " << util::http_date() << "\r\n";
+	
 	// Headers
 	for(auto it = headers.begin(); it != headers.end(); it++)
 		ss << it->first << ": " << it->second << "\r\n";

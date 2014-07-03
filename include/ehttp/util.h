@@ -32,11 +32,32 @@ namespace ehttp
 		 * Converts a number of some kind into a hexadecimal string.
 		 */
 		template<typename T>
-		std::string to_hex(T val)
+		inline std::string to_hex(T val)
 		{
 			std::stringstream ss;
 			ss << std::hex << val;
 			return ss.str();
+		}
+		
+		/**
+		 * Returns the current time as an HTTP-formatted date string.
+		 * 
+		 * The result will be formatted like "Fri, 31 Dec 1999 23:59:59 GMT".
+		 */
+		inline std::string http_date()
+		{
+			// Temporarily force an english locale, otherwise the textual parts
+			// of the result would be translated to the current system language
+			auto old_locale = std::locale::global(std::locale("en_US.UTF-8"));
+			
+			char timestamp[128] = {0};
+			std::time_t t = std::time(nullptr);
+			if(!std::strftime(timestamp, sizeof(timestamp), "%a, %d %b %Y %H:%M:%S", std::gmtime(&t)))
+				strcpy(timestamp, "00:00:00");
+			
+			std::locale::global(old_locale);
+			
+			return std::string(timestamp);
 		}
 	}
 }
