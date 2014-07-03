@@ -146,23 +146,15 @@ std::shared_ptr<response> response::header(std::string name, std::string value)
 
 std::shared_ptr<response> response::write(const std::vector<char> &data)
 {
-	if(!p->body_sent)
-	{
-		if(!p->chunked)
-		{
-			 body.insert(body.end(), data.begin(), data.end());
-		}
-		else
-		{
-			this->begin_chunk()
-				->write(data)
-				->end_chunk();
-		}
-	}
-	else
-	{
+	if(p->body_sent)
 		throw std::logic_error("Attempted to write to an already sent response");
-	}
+	
+	if(!p->chunked)
+		 body.insert(body.end(), data.begin(), data.end());
+	else
+		this->begin_chunk()
+			->write(data)
+			->end_chunk();
 	
 	return shared_from_this();
 }
@@ -220,11 +212,11 @@ std::shared_ptr<response> response::make_chunked()
 	p->head_sent = true;
 	event_data(shared_from_this(), this->to_http(true));
 	
-	if(this->body.size() > 0)
+	if(body.size() > 0)
 	{
 		std::shared_ptr<chunk> chk = this->begin_chunk();
-		chk->write(this->body);
-		this->body.clear();
+		chk->write(body);
+		body.clear();
 		chk->end_chunk();
 	}
 	
