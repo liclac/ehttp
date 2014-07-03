@@ -10,10 +10,17 @@ int main(int argc, char **argv)
 	http_server srv;
 	srv.router = std::make_shared<router>();
 	
-	srv.router->on("GET", "/", [](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+	srv.router->on("GET", "/", [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
 		res->begin()
 			->header("Content-Type", "text/plain")
 			->write("Lorem ipsum dolor sit amet")
+			->end();
+	});
+	
+	srv.router->on_error(404, [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+		res->begin(0)
+			->header("Content-Type", "text/plain")
+			->write("Not Found")
 			->end();
 	});
 	
