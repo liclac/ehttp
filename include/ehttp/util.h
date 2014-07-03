@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <cstring>
+#include <sstream>
 #include "private/_shiv.h"
 
 namespace ehttp
@@ -26,6 +27,17 @@ namespace ehttp
 				return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
 			}
 		};
+		
+		/**
+		 * Converts a number of some kind into a hexadecimal string.
+		 */
+		template<typename T>
+		std::string to_hex(T val)
+		{
+			std::stringstream ss;
+			ss << std::hex << val;
+			return ss.str();
+		}
 	}
 }
 

@@ -1,6 +1,5 @@
 #include <unordered_map>
 #include <stdexcept>
-#include <sstream>
 #include <ehttp/response.h>
 
 using namespace ehttp;
@@ -296,12 +295,15 @@ std::shared_ptr<response> response::chunk::end_chunk()
 
 std::vector<char> response::chunk::to_http()
 {
-	/// @todo Skip the whole stringstream step and all the copying
-	std::stringstream ss;
+	std::string hex_size = util::to_hex(body.size());
+	std::string crlf = "\r\n";
 	
-	ss << std::hex << body.size() << "\r\n";
-	ss << std::string(body.begin(), body.end()) << "\r\n";
+	std::vector<char> data;
+	data.reserve(hex_size.size() + body.size() + crlf.size() * 2);
+	data.insert(data.end(), hex_size.begin(), hex_size.end());
+	data.insert(data.end(), crlf.begin(), crlf.end());
+	data.insert(data.end(), body.begin(), body.end());
+	data.insert(data.end(), crlf.begin(), crlf.end());
 	
-	std::string str = ss.str();
-	return std::vector<char>(str.begin(), str.end());
+	return data;
 }
