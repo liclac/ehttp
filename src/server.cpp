@@ -19,8 +19,16 @@ struct server::impl
 	
 	std::deque<std::thread> worker_threads;
 	
+	// POSIX-specific
+#if defined(__unix__ ) || defined(__APPLE__)
+	signal_set signals;
+#endif
+	
 	impl():
-		acceptor(service)
+		acceptor(service),
+#if defined(__unix__ ) || defined(__APPLE__)
+		signals(service)
+#endif
 	{}
 };
 
@@ -29,6 +37,15 @@ struct server::impl
 server::server(unsigned int workers):
 	p(new impl)
 {
+	// Listen for termination requests and cleanly shut down
+#if defined(__unix__ ) || defined(__APPLE__)
+	p->signals.add(SIGINT);		// Interruption, usually Ctrl+C in a terminal
+	p->signals.add(SIGTERM);	// Explicit termination request
+	p->signals.async_wait([=](const asio::error_code &error, int sig) {
+		this->stop();
+	});
+#endif
+	
 	p->work = new io_service::work(p->service);
 	
 	for(unsigned int i = 0; i < workers; i++)
