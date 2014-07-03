@@ -131,6 +131,18 @@ namespace ehttp
 		 */
 		bool is_chunked() const;
 		
+		/**
+		 * Clears all public and private state.
+		 * 
+		 * Normally, you really don't want to do this, but it's useful for unit
+		 * testing, since it will let you reuse the same response object for
+		 * multiple tests.
+		 * 
+		 * @param exclude_handlers Don't clear handlers; useful for performing
+		 * multiple tests with different data, but the same behavior.
+		 */
+		void clear(bool exclude_handlers = false);
+		
 		
 		
 		/**

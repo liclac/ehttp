@@ -231,6 +231,23 @@ bool response::is_chunked() const
 	return p->chunked;
 }
 
+void response::clear(bool exclude_handlers)
+{
+	delete p;
+	p = new impl;
+	
+	code = 0;
+	reason.clear();
+	headers.clear();
+	body.clear();
+	
+	if(!exclude_handlers)
+	{
+		on_data = nullptr;
+		on_end = nullptr;
+	}
+}
+
 std::vector<char> response::to_http(bool headers_only)
 {
 	std::stringstream ss;
