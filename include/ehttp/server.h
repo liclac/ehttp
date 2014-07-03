@@ -20,6 +20,8 @@ namespace ehttp
 	 * You can use this to easily listen for incoming connections, but you are
 	 * in no way required to - if you have another TCP server that works better
 	 * for you, feel free to use that.
+	 * 
+	 * @todo Cleanly shut down upon receiving a shutdown signal
 	 */
 	class server
 	{
