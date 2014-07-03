@@ -180,32 +180,28 @@ void response::end()
 	if(p->ended)
 		return;
 	
+	if(!on_data)
+		throw std::runtime_error("response::end() for non-chunked responses requires an on_data handler");
+	
+	p->ended = true;
+	
 	if(!p->chunked)
 	{
-		if(!on_data)
-			throw std::runtime_error("response::end() for non-chunked responses requires an on_data handler");
-		
 		this->header("Content-Length", std::to_string(body.size()));
 		
 		p->head_sent = true;
-		event_data(shared_from_this(), this->to_http(true));
-		
 		p->body_sent = true;
-		event_data(shared_from_this(), body);
 		
-		p->ended = true;
+		event_data(shared_from_this(), this->to_http(true));
+		event_data(shared_from_this(), body);
 		event_end(shared_from_this());
 	}
 	else
 	{
-		if(!on_data)
-			throw std::runtime_error("response::end() for chunked responses requires an on_data handler");
-		
 		// Chunked connections are terminated by an empty chunk
+		
 		auto chk = this->begin_chunk();
 		event_data(shared_from_this(), chk->to_http());
-		
-		p->ended = true;
 		event_end(shared_from_this());
 	}
 }
