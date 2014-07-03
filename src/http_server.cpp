@@ -38,18 +38,11 @@ void http_server::event_data(std::shared_ptr<server::connection> connection, voi
 		std::shared_ptr<response> res = std::make_shared<response>(req);
 		
 		// Just set up the response to feed written data back to the connection
-		res->on_head = [=](std::shared_ptr<response> res, std::vector<char> data) {
-			connection->write(data);
-		};
-		res->on_body = [=](std::shared_ptr<response> res, std::vector<char> data) {
-			connection->write(data);
-		};
-		res->on_chunk = [=](std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data) {
+		res->on_data = [=](std::shared_ptr<response> res, std::vector<char> data) {
 			connection->write(data);
 		};
 		
 		// If you want to log responses, on_end is the place to do it!
-		// Here's an example of doing that (requires <ctime> and <ehttp/url.h>)
 		/*
 		res->on_end = [=](std::shared_ptr<response> res) {
 			char timestamp[128] = {0};

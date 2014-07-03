@@ -42,18 +42,8 @@ int main(int argc, const char **argv)
 			std::cout << "Got a request for " << req->url << std::endl;
 			
 			// Log data being written, before just feeding it to the connection
-			res->on_head = [=](std::shared_ptr<response> res, std::vector<char> data) {
-				std::cout << "--> on_head" << std::endl;
-				std::cout << std::string(data.begin(), data.end()) << std::endl;
-				connection->write(data);
-			};
-			res->on_body = [=](std::shared_ptr<response> res, std::vector<char> data) {
-				std::cout << "--> on_body" << std::endl;
-				std::cout << std::string(data.begin(), data.end()) << std::endl;
-				connection->write(data);
-			};
-			res->on_chunk = [=](std::shared_ptr<response> res, std::shared_ptr<response::chunk> chunk, std::vector<char> data) {
-				std::cout << "--> on_chunk" << std::endl;
+			res->on_data = [=](std::shared_ptr<response> res, std::vector<char> data) {
+				std::cout << "--> on_data" << std::endl;
 				std::cout << std::string(data.begin(), data.end()) << std::endl;
 				connection->write(data);
 			};

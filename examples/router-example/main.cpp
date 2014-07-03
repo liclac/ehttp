@@ -16,11 +16,22 @@ int main(int argc, char **argv)
 			->write("Lorem ipsum dolor sit amet")
 			->end();
 	});
+	srv.router->on("GET", "/unauthorized", [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+		res->begin(403)
+			->end();
+	});
 	
 	srv.router->on_error(404, [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
 		res->begin(0)
 			->header("Content-Type", "text/plain")
 			->write("Not Found")
+			->end();
+	});
+	
+	srv.router->on_error(403, [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+		res->begin(0)
+			->header("Content-Type", "text/plain")
+			->write("You're not authorized to access this")
 			->end();
 	});
 	
