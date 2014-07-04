@@ -76,8 +76,6 @@ namespace ehttp
 		uint16_t fallback_code;
 		
 	protected:
-		handler_func lookup_handler(std::string method, std::string path);
-		
 		/**
 		 * Wrap a response's handlers.
 		 * 

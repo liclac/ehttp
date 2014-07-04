@@ -67,19 +67,17 @@ void router::route(std::shared_ptr<request> req, std::shared_ptr<response> res)
 	auto old_on_end = res->on_end;
 	wrap_response_handlers(req, res);
 	
-	// Extract only the path component; note that the HTTP specs say requests
+	// Extract only the path components; note that the HTTP specs say requests
 	// may contain anything from only the path to a full URL.
 	std::string path = url(req->url).path;
 	std::vector<std::string> components = util::split(path, '/');
 	
-	/*
-	 * Routes are indexed as "handlers[method][path] = handler".
-	 * We can't retreive them with [], that would create an empty std::function
-	 * for every request we receive that doesn't have a handler.
-	 */
+	// Look up a matching node in the route tree
 	impl::route_node *node = &p->methods[req->method];
 	for(auto component : components)
 	{
+		// Try to find the next component in the chain and reassign it to the
+		// current node; clear it and break if there is none
 		auto it = node->children.find(component);
 		if(it == node->children.end())
 		{
