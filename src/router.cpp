@@ -73,18 +73,24 @@ void router::route(std::shared_ptr<request> req, std::shared_ptr<response> res)
 	std::vector<std::string> components = util::split(path, '/');
 	
 	// Look up a matching node in the route tree
-	impl::route_node *node = &p->methods[req->method];
-	for(auto component : components)
+	// We can't use operator[] here, since it'll implicitly create objects
+	impl::route_node *node = nullptr;
+	auto method_it = p->methods.find(req->method);
+	if(method_it != p->methods.end())
 	{
-		// Try to find the next component in the chain and reassign it to the
-		// current node; clear it and break if there is none
-		auto it = node->children.find(component);
-		if(it == node->children.end())
+		node = &method_it->second;
+		for(auto component : components)
 		{
-			node = nullptr;
-			break;
+			// Try to find the next component in the chain and reassign it to the
+			// current node; clear it and break if there is none
+			auto it = node->children.find(component);
+			if(it == node->children.end())
+			{
+				node = nullptr;
+				break;
+			}
+			node = &it->second;
 		}
-		node = &it->second;
 	}
 	
 	// Use the node if it's been found, and it has a handler
