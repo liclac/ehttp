@@ -2,11 +2,11 @@
 #define EHTTP_UTIL
 
 #include <functional>
-#include <string>
 #include <locale>
 #include <chrono>
 #include <cstring>
 #include <sstream>
+#include <string>
 #include "private/_shiv.h"
 
 namespace ehttp
@@ -14,21 +14,27 @@ namespace ehttp
 	namespace util
 	{
 		/**
-		 * Case-insensitive comparator.
+		 * Splits a string by a delimiter.
 		 * 
-		 * Can be used e.g. to create case-insensitive maps (for HTTP headers),
-		 * as `std::map<std::string,std::string,ehttp::util::ci_less>`.
-		 * 
-		 * Based on an answer to http://stackoverflow.com/questions/1801892
+		 * Based on an answer to http://stackoverflow.com/questions/236129
 		 */
-		struct ci_less : public std::binary_function<std::string, std::string, bool>
+		inline std::vector<std::string>& split(const std::string &s, char delim, std::vector<std::string> &elems)
 		{
-			///\private No need to document this, really
-			bool operator()(const std::string &lhs, const std::string &rhs) const
-			{
-				return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
-			}
-		};
+			std::stringstream ss(s);
+			std::string item;
+			while(std::getline(ss, item, delim))
+				if(!item.empty()) elems.push_back(item);
+			
+			return elems;
+		}
+		
+		/// @overload
+		inline std::vector<std::string> split(const std::string &s, char delim)
+		{
+			std::vector<std::string> elems;
+			split(s, delim, elems);
+			return elems;
+		}
 		
 		/**
 		 * Converts a number of some kind into a hexadecimal string.
@@ -61,6 +67,23 @@ namespace ehttp
 			
 			return std::string(timestamp);
 		}
+		
+		/**
+		 * Case-insensitive comparator.
+		 * 
+		 * Can be used e.g. to create case-insensitive maps (for HTTP headers),
+		 * as `std::map<std::string,std::string,ehttp::util::ci_less>`.
+		 * 
+		 * Based on an answer to http://stackoverflow.com/questions/1801892
+		 */
+		struct ci_less : public std::binary_function<std::string, std::string, bool>
+		{
+			///\private No need to document this, really
+			bool operator()(const std::string &lhs, const std::string &rhs) const
+			{
+				return strcasecmp(lhs.c_str(), rhs.c_str()) < 0;
+			}
+		};
 	}
 }
 
