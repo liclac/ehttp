@@ -1,7 +1,8 @@
 #include <map>
-#include <regex>
+#include <set>
 #include <ehttp/router.h>
 #include <ehttp/url.h>
+#include <ehttp/util.h>
 #include <iostream>
 
 using namespace ehttp;
@@ -9,8 +10,17 @@ using namespace ehttp;
 /// \private
 struct router::impl
 {
-	// Route handlers are indexed as <method, <path, handler> >
-	std::map<std::string,std::map<std::string,handler_func>> handlers;
+	/// \private Tree structure for routes
+	struct route_node
+	{
+		handler_func handler;
+		std::map<std::string,route_node> children;
+	};
+	
+	// Root nodes; mapped by method
+	std::map<std::string, route_node> methods;
+	
+	// Handlers
 	std::map<uint16_t,handler_func> status_handlers;
 	
 	// Map between responses and their data buffers
@@ -31,7 +41,14 @@ router::~router()
 
 void router::on(std::string method, std::string path, handler_func handler)
 {
-	p->handlers[method][path] = handler;
+	std::vector<std::string> components = util::split(path, '/');
+	impl::route_node &root = p->methods[method];
+	
+	impl::route_node *node = &root;
+	for(auto component : components)
+		node = &node->children[component];
+	
+	node->handler = handler;
 }
 
 void router::on_error(uint16_t code, handler_func handler)
@@ -53,26 +70,32 @@ void router::route(std::shared_ptr<request> req, std::shared_ptr<response> res)
 	// Extract only the path component; note that the HTTP specs say requests
 	// may contain anything from only the path to a full URL.
 	std::string path = url(req->url).path;
+	std::vector<std::string> components = util::split(path, '/');
 	
 	/*
 	 * Routes are indexed as "handlers[method][path] = handler".
 	 * We can't retreive them with [], that would create an empty std::function
 	 * for every request we receive that doesn't have a handler.
 	 */
-	bool handler_found = false;
-	auto method_it = p->handlers.find(req->method);
-	if(method_it != p->handlers.end())
+	impl::route_node *node = &p->methods[req->method];
+	for(auto component : components)
 	{
-		auto route_it = method_it->second.find(path);
-		if(route_it != method_it->second.end() && route_it->second)
+		auto it = node->children.find(component);
+		if(it == node->children.end())
 		{
-			handler_found = true;
-			route_it->second(req, res);
+			node = nullptr;
+			break;
 		}
+		node = &it->second;
 	}
 	
+	// Use the node if it's been found, and it has a handler
+	if(node && node->handler)
+	{
+		node->handler(req, res);
+	}
 	// If no handler is found, attempt to use the handler for #fallback_code
-	if(!handler_found)
+	else
 	{
 		res->code = this->fallback_code;
 		
