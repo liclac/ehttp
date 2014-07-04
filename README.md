@@ -1,7 +1,7 @@
 ehttp
 =====
 
-ehttp (Embedded HTTP) is a modular, embedded HTTP server and a webapp microframework, written in C++.
+ehttp (Embedded HTTP) is a modular HTTP server and a webapp microframework, written in C++.
 
 Out of the box, it provides a TCP server, an HTTP parser, and a request router.  
 These components are loosely coupled, and can be used independently.
