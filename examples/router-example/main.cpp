@@ -8,27 +8,27 @@ int main(int argc, char **argv)
 {
 	// Create a server and a router
 	http_server srv;
-	srv.router = std::make_shared<router>();
+	srv.rtr = std::make_shared<router>();
 	
-	srv.router->on("GET", "/", [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+	srv.rtr->on("GET", "/", [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
 		res->begin()
 			->header("Content-Type", "text/plain")
 			->write("Lorem ipsum dolor sit amet")
 			->end();
 	});
-	srv.router->on("GET", "/unauthorized", [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+	srv.rtr->on("GET", "/unauthorized", [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
 		res->begin(403)
 			->end();
 	});
 	
-	srv.router->on_error(404, [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+	srv.rtr->on_error(404, [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
 		res->begin(0)
 			->header("Content-Type", "text/plain")
 			->write("Not Found")
 			->end();
 	});
 	
-	srv.router->on_error(403, [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+	srv.rtr->on_error(403, [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
 		res->begin(0)
 			->header("Content-Type", "text/plain")
 			->write("You're not authorized to access this")

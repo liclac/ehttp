@@ -181,10 +181,10 @@ namespace ehttp
 	public:
 		/**
 		 * Constructor.
-		 * @param server The parent server
+		 * @param srv The parent server
 		 * @param service The ASIO service
 		 */
-		connection(server *server, io_service &service);
+		connection(server *srv, io_service &service);
 		virtual ~connection();
 		
 		/// Returns the connection's ASIO socket

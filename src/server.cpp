@@ -128,7 +128,7 @@ struct server::connection::impl
 	// Prevent autodeletion while in use
 	std::shared_ptr<server::connection> retain_self;
 	
-	server *server;
+	server *srv;
 	
 	io_service &service;
 	tcp::socket socket;
@@ -143,10 +143,10 @@ struct server::connection::impl
 
 
 
-server::connection::connection(server *server, io_service &service):
+server::connection::connection(server *srv, io_service &service):
 	p(new impl(service))
 {
-	p->server = server;
+	p->srv = srv;
 	p->read_buffer.resize(kReadBufferSize);
 }
 
@@ -175,7 +175,7 @@ void server::connection::disconnect()
 			// If this happens, that means we've already disconnected
 		}
 		
-		p->server->event_disconnected(shared_from_this());
+		p->srv->event_disconnected(shared_from_this());
 	}
 	p->retain_self.reset();
 }
@@ -183,7 +183,7 @@ void server::connection::disconnect()
 void server::connection::connected()
 {
 	p->retain_self = shared_from_this();
-	p->server->event_connected(shared_from_this());
+	p->srv->event_connected(shared_from_this());
 	this->read_chunk();
 }
 
@@ -194,14 +194,14 @@ void server::connection::read_chunk()
 	{
 		if(!error)
 		{
-			p->server->event_data(shared_from_this(), &p->read_buffer[0], bytes_transferred);
+			p->srv->event_data(shared_from_this(), &p->read_buffer[0], bytes_transferred);
 			this->read_chunk();
 		}
 		else
 		{
 			if(error != asio::error::eof && error != asio::error::connection_reset)
-				p->server->event_error(error);
-			p->server->event_disconnected(shared_from_this());
+				p->srv->event_error(error);
+			p->srv->event_disconnected(shared_from_this());
 		}
 	});
 }

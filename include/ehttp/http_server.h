@@ -30,7 +30,7 @@ namespace ehttp
 		/**
 		 * Optional router for handling requests.
 		 */
-		std::shared_ptr<router> router;
+		std::shared_ptr<router> rtr;
 		
 		/**
 		 * Callback for when a new request is received.
