@@ -20,7 +20,11 @@ namespace ehttp
 	class request
 	{
 	public:
-		request();
+		/// Case-insensitive string-to-string map
+		typedef std::map<std::string,std::string,util::ci_less> header_map;
+		
+		/// Constructor
+		request(std::string method = "", std::string url = "", header_map headers = header_map{}, std::vector<char> body = {}, bool upgrade = false);
 		virtual ~request();
 		
 		/// Request Method (also known as Verb); ex: GET, POST, DELETE, ...
@@ -29,7 +33,7 @@ namespace ehttp
 		std::string url;
 		
 		/// Request headers (case insensitive keys)
-		std::map<std::string,std::string,util::ci_less> headers;
+		header_map headers;
 		/// Request body
 		std::vector<char> body;
 		
