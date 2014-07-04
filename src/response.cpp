@@ -91,9 +91,10 @@ struct response::impl
 	{}
 };
 
-response::response(std::shared_ptr<request> req):
+response::response(std::shared_ptr<request> req, std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_data, std::function<void(std::shared_ptr<response> res)> on_end):
 	req(req),
 	code(0),
+	on_data(on_data), on_end(on_end),
 	p(new impl)
 {
 	

@@ -47,7 +47,7 @@ namespace ehttp
 		 * Constructor
 		 * @param req The request we're responding to, for context
 		 */
-		response(std::shared_ptr<request> req = 0);
+		response(std::shared_ptr<request> req = 0, std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_data = 0, std::function<void(std::shared_ptr<response> res)> on_end = 0);
 		virtual ~response();
 		
 		/**
