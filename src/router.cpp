@@ -78,11 +78,12 @@ void router::route(std::shared_ptr<request> req, std::shared_ptr<response> res)
 	auto method_it = p->methods.find(req->method);
 	if(method_it != p->methods.end())
 	{
+		// Start at the method's root node, if there is one
 		node = &method_it->second;
 		for(auto component : components)
 		{
-			// Try to find the next component in the chain and reassign it to the
-			// current node; clear it and break if there is none
+			// Try to find the next component in the chain and reassign it to
+			// the current node; clear it and break if there is none
 			auto it = node->children.find(component);
 			if(it == node->children.end())
 			{
