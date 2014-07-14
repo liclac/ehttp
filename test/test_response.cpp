@@ -3,13 +3,13 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <ehttp/response.h>
+#include <ehttp/eresponse.h>
 
 using namespace ehttp;
 
 TEST_CASE("Test callback counts")
 {
-	std::shared_ptr<response> res = std::make_shared<response>();
+	std::shared_ptr<eresponse> res = std::make_shared<eresponse>();
 	
 	/*
 	 * Every time on_data or on_end is called, increment a counter. If anything
@@ -26,12 +26,12 @@ TEST_CASE("Test callback counts")
 	 * plus one for the terminating chunk (written by end()).
 	 */
 	int on_data_count = 0;
-	res->on_data = [&](std::shared_ptr<response> res, std::vector<char>) {
+	res->on_data = [&](std::shared_ptr<eresponse> res, std::vector<char>) {
 		++on_data_count;
 	};
 	
 	int on_end_count = 0;
-	res->on_end = [&](std::shared_ptr<response> res) {
+	res->on_end = [&](std::shared_ptr<eresponse> res) {
 		++on_end_count;
 	};
 	
@@ -103,7 +103,7 @@ TEST_CASE("Test callback counts")
 
 TEST_CASE("Test exceptions")
 {
-	std::shared_ptr<response> res = std::make_shared<response>();
+	std::shared_ptr<eresponse> res = std::make_shared<eresponse>();
 	
 	SECTION("Attempt end() with no callbacks")
 	{
@@ -121,7 +121,7 @@ TEST_CASE("Test exceptions")
 	
 	
 	// Just set a callback that discards incoming data
-	res->on_data = [=](std::shared_ptr<response>, std::vector<char>) {};
+	res->on_data = [=](std::shared_ptr<eresponse>, std::vector<char>) {};
 	
 	
 	

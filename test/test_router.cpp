@@ -2,7 +2,7 @@
 #include <catch.hpp>
 
 #include <iostream>
-#include <ehttp/router.h>
+#include <ehttp/erouter.h>
 
 using namespace ehttp;
 
@@ -13,20 +13,20 @@ using namespace ehttp;
 
 #define REGISTER_ERROR_HANDLER(_code, _var, _text) \
 	bool _var = false; \
-	rtr.on_error(_code, [&](std::shared_ptr<request> req, std::shared_ptr<response> res) { \
+	rtr.on_error(_code, [&](std::shared_ptr<erequest> req, std::shared_ptr<eresponse> res) { \
 		res->begin(0)->header("Content-Type", "text/plain")->write(_text)->end(); \
 		_var = true; \
 	})
 
 #define REGISTER_HANDLER(_method, _path, _var, _code, _text) \
 	bool _var = false; \
-	rtr.on(_method, _path, [&](std::shared_ptr<request> req, std::shared_ptr<response> res) { \
+	rtr.on(_method, _path, [&](std::shared_ptr<erequest> req, std::shared_ptr<eresponse> res) { \
 		res->begin(_code)->header("Content-Type", "text/plain")->write(_text)->end(); \
 		_var = true; \
 	})
 
 #define ROUTE_REQUEST(_method, _path) \
-	rtr.route(std::make_shared<request>(_method, _path), std::make_shared<response>(nullptr, on_data, on_end))
+	rtr.route(std::make_shared<erequest>(_method, _path), std::make_shared<eresponse>(nullptr, on_data, on_end))
 
 #define REQUIRE_AND_RESET(_var) \
 	CHECK(_var == true); \
@@ -39,7 +39,7 @@ using namespace ehttp;
 
 TEST_CASE("Test callbacks")
 {
-	router rtr;
+	erouter rtr;
 	uint16_t last_code = 0;
 	
 	REGISTER_ERROR_HANDLER(403, forbidden_called, "Can't let you do that, Star Fox!");
@@ -52,8 +52,8 @@ TEST_CASE("Test callbacks")
 	REGISTER_HANDLER("GET", "/error", error_called, 403, "");
 	REGISTER_HANDLER("GET", "/nothing", nothing_called, 404, "");
 	
-	auto on_data = [&](std::shared_ptr<response> res, std::vector<char> data) {};
-	auto on_end = [&](std::shared_ptr<response> res) {
+	auto on_data = [&](std::shared_ptr<eresponse> res, std::vector<char> data) {};
+	auto on_end = [&](std::shared_ptr<eresponse> res) {
 		last_code = res->code;
 	};
 	

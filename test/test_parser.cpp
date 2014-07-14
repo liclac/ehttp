@@ -2,7 +2,7 @@
 #include <catch.hpp>
 
 #include <iostream>
-#include <ehttp/parser.h>
+#include <ehttp/eparser.h>
 
 using namespace ehttp;
 
@@ -32,13 +32,13 @@ const char *junk =
 
 TEST_CASE("Parsing GET requests")
 {
-	parser p;
+	eparser p;
 	
 	SECTION("Parsing a valid request")
 	{
-		REQUIRE(p.parse_chunk(valid_GET, strlen(valid_GET)) == parser::got_request);
+		REQUIRE(p.parse_chunk(valid_GET, strlen(valid_GET)) == eparser::got_request);
 		
-		std::shared_ptr<request> req = p.req();
+		std::shared_ptr<erequest> req = p.req();
 		CHECK(req->method == "GET");
 		CHECK(req->url == "/path?q1=abc&q2=123");
 		CHECK(req->headers["Host"] == "example.com");
@@ -46,20 +46,20 @@ TEST_CASE("Parsing GET requests")
 	
 	SECTION("Parsing some more requests in a sequence")
 	{
-		REQUIRE(p.parse_chunk(valid_GET, strlen(valid_GET)) == parser::got_request);
-		REQUIRE(p.parse_chunk(valid_GET, strlen(valid_GET)) == parser::got_request);
+		REQUIRE(p.parse_chunk(valid_GET, strlen(valid_GET)) == eparser::got_request);
+		REQUIRE(p.parse_chunk(valid_GET, strlen(valid_GET)) == eparser::got_request);
 	}
 }
 
 TEST_CASE("Parsing POST requests")
 {
-	parser p;
+	eparser p;
 	
 	SECTION("Parsing a valid request")
 	{
-		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == parser::got_request);
+		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == eparser::got_request);
 		
-		std::shared_ptr<request> req = p.req();
+		std::shared_ptr<erequest> req = p.req();
 		CHECK(req->method == "POST");
 		CHECK(req->url == "/something/");
 		CHECK(req->headers["Host"] == "example.net");
@@ -68,23 +68,23 @@ TEST_CASE("Parsing POST requests")
 	
 	SECTION("Parsing some more requests in a sequence")
 	{
-		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == parser::got_request);
-		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == parser::got_request);
+		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == eparser::got_request);
+		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == eparser::got_request);
 	}
 }
 
 TEST_CASE("Parsing invalid requests")
 {
-	parser p;
+	eparser p;
 	
 	SECTION("Parsing some junk data")
 	{
-		REQUIRE(p.parse_chunk(junk, strlen(junk)) == parser::error);
+		REQUIRE(p.parse_chunk(junk, strlen(junk)) == eparser::error);
 	}
 	
 	SECTION("Parsing some valid requests afterwards")
 	{
-		REQUIRE(p.parse_chunk(valid_GET, strlen(valid_GET)) == parser::got_request);
-		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == parser::got_request);
+		REQUIRE(p.parse_chunk(valid_GET, strlen(valid_GET)) == eparser::got_request);
+		REQUIRE(p.parse_chunk(valid_POST, strlen(valid_POST)) == eparser::got_request);
 	}
 }
