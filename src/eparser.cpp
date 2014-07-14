@@ -1,7 +1,7 @@
 #include <string>
 #include <stdexcept>
-#include <ehttp/parser.h>
-#include <ehttp/request.h>
+#include <ehttp/eparser.h>
+#include <ehttp/erequest.h>
 #include "../vendor/http-parser/http_parser.h"
 
 using namespace ehttp;
@@ -30,13 +30,13 @@ static const http_parser_settings ehttp_parser_parser_settings = {
 /// \private
 struct ehttp_parser_parser_ctx
 {
-	std::shared_ptr<request> req;
+	std::shared_ptr<erequest> req;
 	bool done;
 	
 	std::string tmp_header_field, tmp_header_value;
 	bool was_reading_header_value;
 	
-	parser *psr;
+	eparser *psr;
 };
 
 void ehttp_parser_push_header(http_parser *psr);
@@ -44,12 +44,12 @@ void ehttp_parser_push_header(http_parser *psr);
 
 
 /// \private
-struct parser::impl
+struct eparser::impl
 {
 	http_parser *psr;
 };
 
-parser::parser():
+eparser::eparser():
 	p(new impl)
 {
 	p->psr = new http_parser;
@@ -62,14 +62,14 @@ parser::parser():
 	p->psr->data = ctx;
 }
 
-parser::~parser()
+eparser::~eparser()
 {
 	delete static_cast<ehttp_parser_parser_ctx*>(p->psr->data);
 	delete p->psr;
 	delete p;
 }
 
-parser::status parser::parse_chunk(const char *data, std::size_t length)
+eparser::status eparser::parse_chunk(const char *data, std::size_t length)
 {
 	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(p->psr->data);
 	
@@ -91,7 +91,7 @@ parser::status parser::parse_chunk(const char *data, std::size_t length)
 	return (ctx->done ? got_request : keep_going);
 }
 
-std::shared_ptr<request> parser::req()
+std::shared_ptr<erequest> eparser::req()
 {
 	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(p->psr->data);
 	return ctx->req;
@@ -102,7 +102,7 @@ std::shared_ptr<request> parser::req()
 int ehttp_parser_on_message_begin(http_parser *psr)
 {
 	ehttp_parser_parser_ctx *ctx = static_cast<ehttp_parser_parser_ctx*>(psr->data);
-	ctx->req = std::make_shared<request>();
+	ctx->req = std::make_shared<erequest>();
 	return 0;
 }
 

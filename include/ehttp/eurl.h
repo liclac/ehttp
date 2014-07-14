@@ -9,7 +9,7 @@ namespace ehttp
 	/**
 	 * Represents a URL.
 	 */
-	class url
+	class eurl
 	{
 	public:
 		/**
@@ -18,8 +18,8 @@ namespace ehttp
 		 * Parses the given string into components.\n
 		 * Invalid URLs will be assumed to consist only of a path.
 		 */
-		url(std::string string);
-		virtual ~url();
+		eurl(std::string string);
+		virtual ~eurl();
 		
 		uint16_t port;				///< The port (eg. 80)
 		std::string protocol;		///< The protocol (eg. http)

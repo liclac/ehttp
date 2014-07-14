@@ -17,19 +17,19 @@ namespace ehttp
 	 * 
 	 * It's a dumb container, change values at will.
 	 */
-	class request
+	class erequest
 	{
 	public:
 		/// Case-insensitive string-to-string map
 		typedef std::map<std::string,std::string,util::ci_less> header_map;
 		
 		/// Constructor
-		request(std::string method = "", std::string url = "", header_map headers = header_map{}, std::vector<char> body = {}, bool upgrade = false);
-		virtual ~request();
+		erequest(std::string method = "", std::string url = "", header_map headers = header_map{}, std::vector<char> body = {}, bool upgrade = false);
+		virtual ~erequest();
 		
 		/// Request Method (also known as Verb); ex: GET, POST, DELETE, ...
 		std::string method;
-		/// Unparsed Request URL (tip: use the \ref url class)
+		/// Unparsed Request URL (tip: use the \ref eurl class)
 		std::string url;
 		
 		/// Request headers (case insensitive keys)

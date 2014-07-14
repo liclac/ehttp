@@ -3,7 +3,7 @@
 
 #include <functional>
 #include <memory>
-#include "request.h"
+#include "erequest.h"
 
 namespace ehttp
 {
@@ -13,11 +13,11 @@ namespace ehttp
 	 * You should keep an instance of this class per connection, and feed it
 	 * any data you receive.
 	 */
-	class parser
+	class eparser
 	{
 	public:
-		parser();
-		virtual ~parser();
+		eparser();
+		virtual ~eparser();
 		
 		/// The return value of parse_chunk().
 		enum status {
@@ -38,7 +38,7 @@ namespace ehttp
 		 * 
 		 * @see request()
 		 */
-		parser::status parse_chunk(const char *data, std::size_t length);
+		eparser::status parse_chunk(const char *data, std::size_t length);
 		
 		/**
 		 * Retreive the parsed request.
@@ -48,12 +48,12 @@ namespace ehttp
 		 * when a request is returned, you should store it elsewhere, since it
 		 * will be cleared the next time data is received from the client.
 		 */
-		std::shared_ptr<request> req();
+		std::shared_ptr<erequest> req();
 		
 	private:
 		struct impl;
 		impl *p;
-	};
+	};	
 }
 
 #endif

@@ -1,7 +1,7 @@
 #include <sstream>
 #include <bitset>
 #include <cstring>
-#include <ehttp/url.h>
+#include <ehttp/eurl.h>
 #include "../vendor/http-parser/http_parser.h"
 
 using namespace ehttp;
@@ -10,7 +10,7 @@ using namespace ehttp;
 	if(set_fields[_idx]) \
 		_var = std::string(cstr + data.field_data[_idx].off, data.field_data[_idx].len)
 
-url::url(std::string string):
+eurl::eurl(std::string string):
 	port(0)
 {
 	const char *cstr = string.c_str();
@@ -29,12 +29,12 @@ url::url(std::string string):
 	else path = string;
 }
 
-url::~url()
+eurl::~eurl()
 {
 	
 }
 
-std::string url::str() const
+std::string eurl::str() const
 {
 	std::stringstream ss;
 	

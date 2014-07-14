@@ -1,14 +1,14 @@
 #include <map>
 #include <set>
-#include <ehttp/router.h>
-#include <ehttp/url.h>
+#include <ehttp/erouter.h>
+#include <ehttp/eurl.h>
 #include <ehttp/util.h>
 #include <iostream>
 
 using namespace ehttp;
 
 /// \private
-struct router::impl
+struct erouter::impl
 {
 	/// \private Tree structure for routes
 	struct route_node
@@ -24,22 +24,22 @@ struct router::impl
 	std::map<uint16_t,handler_func> status_handlers;
 	
 	// Map between responses and their data buffers
-	std::map<std::shared_ptr<response>,std::vector<char>> buffers;
+	std::map<std::shared_ptr<eresponse>,std::vector<char>> buffers;
 };
 
-router::router():
+erouter::erouter():
 	fallback_code(404),
 	p(new impl)
 {
 	
 }
 
-router::~router()
+erouter::~erouter()
 {
 	
 }
 
-void router::on(std::string method, std::string path, handler_func handler)
+void erouter::on(std::string method, std::string path, handler_func handler)
 {
 	std::vector<std::string> components = util::split(path, '/');
 	impl::route_node &root = p->methods[method];
@@ -51,16 +51,16 @@ void router::on(std::string method, std::string path, handler_func handler)
 	node->handler = handler;
 }
 
-void router::on_error(uint16_t code, handler_func handler)
+void erouter::on_error(uint16_t code, handler_func handler)
 {
 	p->status_handlers[code] = handler;
 }
 
-void router::route(std::shared_ptr<request> req, std::shared_ptr<response> res)
+void erouter::route(std::shared_ptr<erequest> req, std::shared_ptr<eresponse> res)
 {
 	// Throw exceptions for responses without required handlers
 	if(!res->on_data)
-		throw std::runtime_error("router::route() response lacks on_data");
+		throw std::runtime_error("erouter::route() response lacks on_data");
 	
 	// Set callbacks that call status handlers where appropriate
 	auto old_on_data = res->on_data;
@@ -69,7 +69,7 @@ void router::route(std::shared_ptr<request> req, std::shared_ptr<response> res)
 	
 	// Extract only the path components; note that the HTTP specs say requests
 	// may contain anything from only the path to a full URL.
-	std::string path = url(req->url).path;
+	std::string path = eurl(req->url).path;
 	std::vector<std::string> components = util::split(path, '/');
 	
 	// Look up a matching node in the route tree
@@ -117,7 +117,7 @@ void router::route(std::shared_ptr<request> req, std::shared_ptr<response> res)
 	}
 }
 
-void router::wrap_response_handlers(std::shared_ptr<request> req, std::shared_ptr<response> res)
+void erouter::wrap_response_handlers(std::shared_ptr<erequest> req, std::shared_ptr<eresponse> res)
 {
 	auto old_on_data = res->on_data;
 	auto old_on_end = res->on_end;
@@ -126,7 +126,7 @@ void router::wrap_response_handlers(std::shared_ptr<request> req, std::shared_pt
 	 * The first time data is received from a response, check it and swap
 	 * its on_data and on_end handlers out for a more appropriate one.
 	 */
-	res->on_data = [=](std::shared_ptr<response> res, std::vector<char> data)
+	res->on_data = [=](std::shared_ptr<eresponse> res, std::vector<char> data)
 	{
 		/*
 		 * If the response is not chunked, and there's a handler for its code,
@@ -136,7 +136,7 @@ void router::wrap_response_handlers(std::shared_ptr<request> req, std::shared_pt
 		if(!res->is_chunked() && p->status_handlers.find(res->code) != p->status_handlers.end())
 		{
 			// on_data should buffer data rather than send it to the client
-			res->on_data = [=](std::shared_ptr<response> res, std::vector<char> data) {
+			res->on_data = [=](std::shared_ptr<eresponse> res, std::vector<char> data) {
 				// std::map::operator[] will create this if it doesn't exist
 				std::vector<char> &buffer = p->buffers[res];
 				buffer.insert(buffer.end(), data.begin(), data.end());
@@ -146,7 +146,7 @@ void router::wrap_response_handlers(std::shared_ptr<request> req, std::shared_pt
 			 * on_end should again evaluate if a handler should be fired, fire
 			 * it if appropriate, otherwise just send the client the buffer.
 			 */
-			res->on_end = [=](std::shared_ptr<response> res) {
+			res->on_end = [=](std::shared_ptr<eresponse> res) {
 				bool status_handler_fired = false;
 				
 				// Only fire handlers for empty, non-chunked responses

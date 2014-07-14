@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "request.h"
+#include "erequest.h"
 #include "util.h"
 
 namespace ehttp
@@ -15,7 +15,7 @@ namespace ehttp
 	/**
 	 * Represents an HTTP Response.
 	 * 
-	 * Unlike \ref request, response is more of a generator than a simple
+	 * Unlike \ref erequest, response is more of a generator than a simple
 	 * container. The reason for this is obviously that our main order of
 	 * business here is generating responses, rather than requests.
 	 * 
@@ -38,14 +38,14 @@ namespace ehttp
 	 * Chunked calls will make the response chunked if it's not, immediately
 	 * writing a chunk consisting of any data written using non-chunked calls.
 	 */
-	class response : public std::enable_shared_from_this<response>
+	class eresponse : public std::enable_shared_from_this<eresponse>
 	{
 	public:
 		class chunk;
 		
 		/// Constructor
-		response(std::shared_ptr<request> req = nullptr, std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_data = nullptr, std::function<void(std::shared_ptr<response> res)> on_end = nullptr);
-		virtual ~response();
+		eresponse(std::shared_ptr<erequest> req = nullptr, std::function<void(std::shared_ptr<eresponse> res, std::vector<char> data)> on_data = nullptr, std::function<void(std::shared_ptr<eresponse> res)> on_end = nullptr);
+		virtual ~eresponse();
 		
 		/**
 		 * Begins a response with the given status code, and optionally a
@@ -60,16 +60,16 @@ namespace ehttp
 		 * A far more useful thing to do is to call `begin(0)`, which will
 		 * clear only the contents, while keeping the status code and reason
 		 * phrase. This is intended for use with status handlers, as is done in
-		 * \ref router.
+		 * \ref erouter.
 		 */
-		std::shared_ptr<response> begin(uint16_t code = 200, std::string custom_reason = "");
+		std::shared_ptr<eresponse> begin(uint16_t code = 200, std::string custom_reason = "");
 		
 		/** 
 		 * Sets a header, overwriting any previous value.
 		 * 
 		 * @throws std::logic_error if end() has already been called.
 		 */
-		std::shared_ptr<response> header(std::string name, std::string value);
+		std::shared_ptr<eresponse> header(std::string name, std::string value);
 		
 		/**
 		 * Appends some data to the response body.
@@ -80,9 +80,9 @@ namespace ehttp
 		 * @throws std::logic_error if the body has already been written, and
 		 * the response is not chunked.
 		 */
-		std::shared_ptr<response> write(const std::vector<char> &data);
+		std::shared_ptr<eresponse> write(const std::vector<char> &data);
 		/// @overload
-		std::shared_ptr<response> write(const std::string &data);
+		std::shared_ptr<eresponse> write(const std::string &data);
 		
 		/**
 		 * Finalizes the response and calls #on_end if present.
@@ -102,7 +102,7 @@ namespace ehttp
 		 * 
 		 * @throws std::runtime_error if #on_data is NULL.
 		 */
-		std::shared_ptr<response> make_chunked();
+		std::shared_ptr<eresponse> make_chunked();
 		
 		/**
 		 * Begins a chunk.
@@ -138,7 +138,7 @@ namespace ehttp
 		
 		
 		/// The request we're responding to, for context
-		std::shared_ptr<request> req;
+		std::shared_ptr<erequest> req;
 		
 		/// HTTP Status Code (eg. 200, 404, 500, ...)
 		uint16_t code;
@@ -158,7 +158,7 @@ namespace ehttp
 		 * @param chunk The associated chunk, a null pointer if there is none
 		 * @param data HTTP-formatted data, ready to be written to a stream
 		 */
-		std::function<void(std::shared_ptr<response> res, std::vector<char> data)> on_data;
+		std::function<void(std::shared_ptr<eresponse> res, std::vector<char> data)> on_data;
 		
 		/**
 		 * Called when a response has ended.
@@ -167,16 +167,16 @@ namespace ehttp
 		 * 
 		 * @param res The response
 		 */
-		std::function<void(std::shared_ptr<response> res)> on_end;
+		std::function<void(std::shared_ptr<eresponse> res)> on_end;
 		
 	protected:
 		/// Overridable emitter for #on_data
-		virtual void event_data(std::shared_ptr<response> res, std::vector<char> data) {
+		virtual void event_data(std::shared_ptr<eresponse> res, std::vector<char> data) {
 			if(on_data) on_data(res, data);
 		}
 		
 		/// Overridable emitter for #on_end
-		virtual void event_end(std::shared_ptr<response> res) {
+		virtual void event_end(std::shared_ptr<eresponse> res) {
 			if(on_end) on_end(res);
 		}
 		
@@ -184,22 +184,22 @@ namespace ehttp
 		struct impl;
 		impl *p;
 	};
-	
-	
-	
+
+
+
 	/**
-	 * Represents a chunk in a \ref response.
+	 * Represents a chunk in a \ref eresponse.
 	 */
-	class response::chunk : public std::enable_shared_from_this<response::chunk>
+	class eresponse::chunk : public std::enable_shared_from_this<eresponse::chunk>
 	{
 	public:
 		/**
 		 * Constructor, typically not called directly.
-		 * Instead, you should use response::begin_chunk() to create chunks.
+		 * Instead, you should use eresponse::begin_chunk() to create chunks.
 		 * This is exposed mainly for unit testing purposes.
 		 * @param res The response the chunk is part of
 		 */
-		chunk(std::shared_ptr<response> res);
+		chunk(std::shared_ptr<eresponse> res);
 		virtual ~chunk();
 		
 		/**
@@ -207,9 +207,9 @@ namespace ehttp
 		 * 
 		 * @throws std::logic_error if end() has already been called.
 		 */
-		std::shared_ptr<response::chunk> write(const std::vector<char> &data);
+		std::shared_ptr<eresponse::chunk> write(const std::vector<char> &data);
 		/// @overload
-		std::shared_ptr<response::chunk> write(const std::string &data);
+		std::shared_ptr<eresponse::chunk> write(const std::string &data);
 		
 		/**
 		 * Ends the chunk.
@@ -217,9 +217,9 @@ namespace ehttp
 		 * Attempts to end an empty chunk will be ignored, as empty chunks mark
 		 * the end of a chunked transfer, and thus writing an empty chunk by
 		 * accident would be bad.\n
-		 * Use response::end() to write the terminating chunk instead.
+		 * Use eresponse::end() to write the terminating chunk instead.
 		 * 
-		 * Named like this to avoid confusion with response::end() when
+		 * Named like this to avoid confusion with eresponse::end() when
 		 * chaining calls. For example:
 		 * 
 		 *     res->begin()
@@ -232,12 +232,12 @@ namespace ehttp
 		 * If this was named "end" as well, this would cause the response to
 		 * never finish, as the chunk would be ended but the response would
 		 * not - the user's browser would wait forever for the terminating
-		 * chunk that was meant to be generated by response::end(). Instead,
+		 * chunk that was meant to be generated by eresponse::end(). Instead,
 		 * this now causes a compile-time error.
 		 * 
-		 * @throws std::runtime_error if response::on_data in #res isn't set.
+		 * @throws std::runtime_error if eresponse::on_data in #res isn't set.
 		 */
-		std::shared_ptr<response> end_chunk();
+		std::shared_ptr<eresponse> end_chunk();
 		
 		
 		
@@ -247,7 +247,7 @@ namespace ehttp
 		
 		
 		/// The response the chunk is a part of
-		std::shared_ptr<response> res;
+		std::shared_ptr<eresponse> res;
 		/// The chunk body
 		std::vector<char> body;
 		

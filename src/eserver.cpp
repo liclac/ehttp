@@ -1,5 +1,5 @@
 #include <iostream>
-#include <ehttp/server.h>
+#include <ehttp/eserver.h>
 
 using namespace ehttp;
 using namespace asio;
@@ -10,7 +10,7 @@ using namespace asio::ip;
 
 
 /// \private
-struct server::impl
+struct eserver::impl
 {
 	io_service service;
 	
@@ -26,7 +26,7 @@ struct server::impl
 
 
 
-server::server(unsigned int workers):
+eserver::eserver(unsigned int workers):
 	p(new impl)
 {
 	p->work = new io_service::work(p->service);
@@ -35,7 +35,7 @@ server::server(unsigned int workers):
 		p->worker_threads.emplace_back([&]{ p->service.run(); });
 }
 
-server::~server()
+eserver::~eserver()
 {
 	delete p->work;
 	p->acceptor.close();
@@ -46,7 +46,7 @@ server::~server()
 	delete p;
 }
 
-asio::error_code server::listen(const tcp::endpoint &endpoint)
+asio::error_code eserver::listen(const tcp::endpoint &endpoint)
 {
 	asio::error_code error;
 	
@@ -63,34 +63,34 @@ asio::error_code server::listen(const tcp::endpoint &endpoint)
 	return error;
 }
 
-asio::error_code server::listen(const std::string &address, const uint16_t &port)
+asio::error_code eserver::listen(const std::string &address, const uint16_t &port)
 {
 	return this->listen(tcp::endpoint(address::from_string(address), port));
 }
 
-asio::error_code server::listen(const uint16_t &port)
+asio::error_code eserver::listen(const uint16_t &port)
 {
 	return this->listen(tcp::endpoint(tcp::v4(), port));
 }
 
-void server::run()
+void eserver::run()
 {
 	p->service.run();
 }
 
-void server::stop()
+void eserver::stop()
 {
 	p->service.stop();
 }
 
-void server::poll()
+void eserver::poll()
 {
 	p->service.poll();
 }
 
-void server::accept()
+void eserver::accept()
 {
-	std::shared_ptr<server::connection> connection = std::make_shared<server::connection>(this, p->service);
+	std::shared_ptr<eserver::connection> connection = std::make_shared<eserver::connection>(this, p->service);
 	
 	p->acceptor.async_accept(connection->socket(), [=](const asio::error_code &error)
 	{
@@ -106,12 +106,12 @@ void server::accept()
 
 
 /// \private
-struct server::connection::impl
+struct eserver::connection::impl
 {
 	// Prevent autodeletion while in use
-	std::shared_ptr<server::connection> retain_self;
+	std::shared_ptr<eserver::connection> retain_self;
 	
-	server *srv;
+	eserver *srv;
 	
 	io_service &service;
 	tcp::socket socket;
@@ -126,28 +126,28 @@ struct server::connection::impl
 
 
 
-server::connection::connection(server *srv, io_service &service):
+eserver::connection::connection(eserver *srv, io_service &service):
 	p(new impl(service))
 {
 	p->srv = srv;
 	p->read_buffer.resize(kReadBufferSize);
 }
 
-server::connection::~connection()
+eserver::connection::~connection()
 {
 	delete p;
 }
 
-tcp::socket& server::connection::socket() { return p->socket; }
+tcp::socket& eserver::connection::socket() { return p->socket; }
 
-void server::connection::write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback)
+void eserver::connection::write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback)
 {
 	p->write_queue.push_back(data);
 	if(p->write_queue.size() == 1)
 		this->write_next();
 }
 
-void server::connection::disconnect()
+void eserver::connection::disconnect()
 {
 	if(p->socket.is_open())
 	{
@@ -163,14 +163,14 @@ void server::connection::disconnect()
 	p->retain_self.reset();
 }
 
-void server::connection::connected()
+void eserver::connection::connected()
 {
 	p->retain_self = shared_from_this();
 	p->srv->event_connected(shared_from_this());
 	this->read_chunk();
 }
 
-void server::connection::read_chunk()
+void eserver::connection::read_chunk()
 {
 	p->socket.async_read_some(asio::buffer(p->read_buffer, kReadBufferSize),
 		[&](const asio::error_code &error, std::size_t bytes_transferred)
@@ -189,7 +189,7 @@ void server::connection::read_chunk()
 	});
 }
 
-void server::connection::write_next()
+void eserver::connection::write_next()
 {
 	std::vector<char> &data = p->write_queue[0];
 	asio::async_write(p->socket, asio::buffer(data), [=](const asio::error_code &error, std::size_t bytes_transferred) {
