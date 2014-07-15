@@ -9,23 +9,23 @@
 
 using namespace ehttp;
 
-void AppServer::event_connected(std::shared_ptr<HTTPServer::connection> connection)
+void AppServer::eventConnected(std::shared_ptr<HTTPServer::connection> connection)
 {
 	// If you want to do some setup when the connection is established (such
 	// as if you used pointers for context objects), do it here.
 	
-	HTTPServer::event_connected(connection);
+	HTTPServer::eventConnected(connection);
 }
 
-void AppServer::event_disconnected(std::shared_ptr<HTTPServer::connection> connection)
+void AppServer::eventDisconnected(std::shared_ptr<HTTPServer::connection> connection)
 {
 	// Delete the context data for the disconnected connection
 	contexts.erase(connection);
 	
-	HTTPServer::event_disconnected(connection);
+	HTTPServer::eventDisconnected(connection);
 }
 
-void AppServer::event_data(std::shared_ptr<HTTPServer::connection> connection, const char *data, std::size_t size)
+void AppServer::eventData(std::shared_ptr<HTTPServer::connection> connection, const char *data, std::size_t size)
 {
 	// std::map's operator[] implicitly creates an object if it doesn't exist,
 	// and then returns a reference to it. Thus, no need to do it manually!
@@ -38,13 +38,13 @@ void AppServer::event_data(std::shared_ptr<HTTPServer::connection> connection, c
 		std::shared_ptr<HTTPResponse> res = std::make_shared<HTTPResponse>(req);
 		
 		// Just set up the response to feed written data back to the connection
-		res->on_data = [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
+		res->onData = [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
 			connection->write(data);
 		};
 		
-		// If you want to log responses, on_end is the place to do it!
+		// If you want to log responses, onEnd is the place to do it!
 		/*
-		res->on_end = [=](std::shared_ptr<HTTPResponse> res) {
+		res->onEnd = [=](std::shared_ptr<HTTPResponse> res) {
 			char timestamp[128] = {0};
 			
 			// The if() is because it's possible for strftime() to fail,
@@ -61,15 +61,15 @@ void AppServer::event_data(std::shared_ptr<HTTPServer::connection> connection, c
 		if(rtr) rtr->route(req, res);
 		
 		// Then fire the request event afterwards
-		event_request(connection, req, res);
+		eventRequest(connection, req, res);
 	}
 	
-	HTTPServer::event_data(connection, data, size);
+	HTTPServer::eventData(connection, data, size);
 }
 
-void AppServer::event_error(asio::error_code error)
+void AppServer::eventError(asio::error_code error)
 {
 	// If you want to handle errors
 	
-	HTTPServer::event_error(error);
+	HTTPServer::eventError(error);
 }

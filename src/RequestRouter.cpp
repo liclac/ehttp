@@ -59,12 +59,12 @@ void RequestRouter::onError(uint16_t code, handler_func handler)
 void RequestRouter::route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)
 {
 	// Throw exceptions for responses without required handlers
-	if(!res->on_data)
-		throw std::runtime_error("RequestRouter::route() response lacks on_data");
+	if(!res->onData)
+		throw std::runtime_error("RequestRouter::route() response lacks onData");
 	
 	// Set callbacks that call status handlers where appropriate
-	auto old_on_data = res->on_data;
-	auto old_on_end = res->on_end;
+	auto old_onData = res->onData;
+	auto old_onEnd = res->onEnd;
 	wrapResponseHandlers(req, res);
 	
 	// Extract only the path components; note that the HTTP specs say requests
@@ -107,10 +107,10 @@ void RequestRouter::route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTP
 		auto status_handler_it = p->status_handlers.find(res->code);
 		if(status_handler_it != p->status_handlers.end() && status_handler_it->second)
 		{
-			// Don't use our newly installed on_data and on_end, as that could
+			// Don't use our newly installed onData and onEnd, as that could
 			// create an infinite loop of handler calls in some circumstances.
-			res->on_data = old_on_data;
-			res->on_end = old_on_end;
+			res->onData = old_onData;
+			res->onEnd = old_onEnd;
 			
 			status_handler_it->second(req, res);
 		}
@@ -119,14 +119,14 @@ void RequestRouter::route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTP
 
 void RequestRouter::wrapResponseHandlers(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)
 {
-	auto old_on_data = res->on_data;
-	auto old_on_end = res->on_end;
+	auto old_onData = res->onData;
+	auto old_onEnd = res->onEnd;
 	
 	/*
 	 * The first time data is received from a response, check it and swap
-	 * its on_data and on_end handlers out for a more appropriate one.
+	 * its onData and onEnd handlers out for a more appropriate one.
 	 */
-	res->on_data = [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data)
+	res->onData = [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data)
 	{
 		/*
 		 * If the response is not chunked, and there's a handler for its code,
@@ -135,18 +135,18 @@ void RequestRouter::wrapResponseHandlers(std::shared_ptr<HTTPRequest> req, std::
 		 */
 		if(!res->isChunked() && p->status_handlers.find(res->code) != p->status_handlers.end())
 		{
-			// on_data should buffer data rather than send it to the client
-			res->on_data = [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
+			// onData should buffer data rather than send it to the client
+			res->onData = [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
 				// std::map::operator[] will create this if it doesn't exist
 				std::vector<char> &buffer = p->buffers[res];
 				buffer.insert(buffer.end(), data.begin(), data.end());
 			};
 			
 			/*
-			 * on_end should again evaluate if a handler should be fired, fire
+			 * onEnd should again evaluate if a handler should be fired, fire
 			 * it if appropriate, otherwise just send the client the buffer.
 			 */
-			res->on_end = [=](std::shared_ptr<HTTPResponse> res) {
+			res->onEnd = [=](std::shared_ptr<HTTPResponse> res) {
 				bool status_handler_fired = false;
 				
 				// Only fire handlers for empty, non-chunked responses
@@ -155,9 +155,9 @@ void RequestRouter::wrapResponseHandlers(std::shared_ptr<HTTPRequest> req, std::
 					auto status_handler_it = p->status_handlers.find(res->code);
 					if(status_handler_it != p->status_handlers.end() && status_handler_it->second)
 					{
-						// Use the original on_data and on_end to prevent loops
-						res->on_data = old_on_data;
-						res->on_end = old_on_end;
+						// Use the original onData and onEnd to prevent loops
+						res->onData = old_onData;
+						res->onEnd = old_onEnd;
 						status_handler_fired = true;
 						
 						status_handler_it->second(req, res);
@@ -167,8 +167,8 @@ void RequestRouter::wrapResponseHandlers(std::shared_ptr<HTTPRequest> req, std::
 				// If a handler hasn't been fired, fire the original handlers
 				if(!status_handler_fired)
 				{
-					old_on_data(res, p->buffers[res]);
-					if(old_on_end) old_on_end(res);
+					old_onData(res, p->buffers[res]);
+					if(old_onEnd) old_onEnd(res);
 				}
 				
 				// Remember to delete the buffer when we're done with it!
@@ -178,11 +178,11 @@ void RequestRouter::wrapResponseHandlers(std::shared_ptr<HTTPRequest> req, std::
 		// Otherwise, substitute this with the original handlers
 		else
 		{
-			res->on_data = old_on_data;
-			res->on_end = old_on_end;
+			res->onData = old_onData;
+			res->onEnd = old_onEnd;
 		}
 		
-		// Either way, call whatever function is now in on_data
-		res->on_data(res, data);
+		// Either way, call whatever function is now in onData
+		res->onData(res, data);
 	};
 }

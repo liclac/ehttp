@@ -99,7 +99,7 @@ void HTTPServer::accept()
 			connection->connected();
 			this->accept();
 		}
-		else event_error(error);
+		else eventError(error);
 	});
 }
 
@@ -158,7 +158,7 @@ void HTTPServer::connection::disconnect()
 			// If this happens, that means we've already disconnected
 		}
 		
-		p->srv->event_disconnected(shared_from_this());
+		p->srv->eventDisconnected(shared_from_this());
 	}
 	p->retain_self.reset();
 }
@@ -166,7 +166,7 @@ void HTTPServer::connection::disconnect()
 void HTTPServer::connection::connected()
 {
 	p->retain_self = shared_from_this();
-	p->srv->event_connected(shared_from_this());
+	p->srv->eventConnected(shared_from_this());
 	this->readChunk();
 }
 
@@ -177,14 +177,14 @@ void HTTPServer::connection::readChunk()
 	{
 		if(!error)
 		{
-			p->srv->event_data(shared_from_this(), &p->read_buffer[0], bytes_transferred);
+			p->srv->eventData(shared_from_this(), &p->read_buffer[0], bytes_transferred);
 			this->readChunk();
 		}
 		else
 		{
 			if(error != asio::error::eof && error != asio::error::connection_reset)
-				p->srv->event_error(error);
-			p->srv->event_disconnected(shared_from_this());
+				p->srv->eventError(error);
+			p->srv->eventDisconnected(shared_from_this());
 		}
 	});
 }

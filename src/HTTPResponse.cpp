@@ -91,10 +91,10 @@ struct HTTPResponse::impl
 	{}
 };
 
-HTTPResponse::HTTPResponse(std::shared_ptr<HTTPRequest> req, std::function<void(std::shared_ptr<HTTPResponse> res, std::vector<char> data)> on_data, std::function<void(std::shared_ptr<HTTPResponse> res)> on_end):
+HTTPResponse::HTTPResponse(std::shared_ptr<HTTPRequest> req, std::function<void(std::shared_ptr<HTTPResponse> res, std::vector<char> data)> onData, std::function<void(std::shared_ptr<HTTPResponse> res)> onEnd):
 	req(req),
 	code(0),
-	on_data(on_data), on_end(on_end),
+	onData(onData), onEnd(onEnd),
 	p(new impl)
 {
 	
@@ -166,8 +166,8 @@ void HTTPResponse::end()
 	if(p->ended)
 		return;
 	
-	if(!on_data)
-		throw std::runtime_error("HTTPResponse::end() for non-chunked responses requires an on_data handler");
+	if(!onData)
+		throw std::runtime_error("HTTPResponse::end() for non-chunked responses requires an onData handler");
 	
 	p->ended = true;
 	
@@ -178,14 +178,14 @@ void HTTPResponse::end()
 		p->head_sent = true;
 		p->body_sent = true;
 		
-		event_data(shared_from_this(), this->toHTTP());
-		event_end(shared_from_this());
+		eventData(shared_from_this(), this->toHTTP());
+		eventEnd(shared_from_this());
 	}
 	else
 	{
 		// Chunked connections are terminated by an empty chunk
-		event_data(shared_from_this(), Chunk(shared_from_this()).toHTTP());
-		event_end(shared_from_this());
+		eventData(shared_from_this(), Chunk(shared_from_this()).toHTTP());
+		eventEnd(shared_from_this());
 	}
 }
 
@@ -195,14 +195,14 @@ std::shared_ptr<HTTPResponse> HTTPResponse::makeChunked()
 	if(p->chunked)
 		return shared_from_this();
 	
-	if(!on_data)
-		throw std::runtime_error("HTTPResponse::makeChunked() requires an on_data handler");
+	if(!onData)
+		throw std::runtime_error("HTTPResponse::makeChunked() requires an onData handler");
 	
 	p->chunked = true;
 	this->header("Transfer-Encoding", "chunked");
 	
 	p->head_sent = true;
-	event_data(shared_from_this(), this->toHTTP(true));
+	eventData(shared_from_this(), this->toHTTP(true));
 	
 	if(body.size() > 0)
 	{
@@ -300,13 +300,13 @@ std::shared_ptr<HTTPResponse> HTTPResponse::Chunk::endChunk()
 	if(body.size() == 0)
 		return res;
 	
-	if(!res->on_data)
-		throw std::runtime_error("HTTPResponse::Chunk::end() requires an on_data handler");
+	if(!res->onData)
+		throw std::runtime_error("HTTPResponse::Chunk::end() requires an onData handler");
 	
 	ended = true;
 	
 	res->makeChunked();
-	res->event_data(res, this->toHTTP());
+	res->eventData(res, this->toHTTP());
 	
 	return res;
 }

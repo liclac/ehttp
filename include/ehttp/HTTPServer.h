@@ -103,7 +103,7 @@ namespace ehttp
 		 * 
 		 * @param connection The newly established connection
 		 */
-		std::function<void(std::shared_ptr<HTTPServer::connection> connection)> on_connected;
+		std::function<void(std::shared_ptr<HTTPServer::connection> connection)> onConnected;
 		
 		/**
 		 * Callback for when a connection receives data.
@@ -112,18 +112,18 @@ namespace ehttp
 		 * @param data Pointer to the response data; this is only guaranteed to be valid until this callback returns
 		 * @param size Size of the response data
 		 */
-		std::function<void(std::shared_ptr<HTTPServer::connection> connection, const char *data, std::size_t size)> on_data;
+		std::function<void(std::shared_ptr<HTTPServer::connection> connection, const char *data, std::size_t size)> onData;
 		
 		/**
 		 * Callback for when a connection is disconnected.
 		 * 
 		 * This is called regardless of if the connection was cleanly closed or
-		 * if it was closed in response to an error (after #on_error), so you
+		 * if it was closed in response to an error (after #onError), so you
 		 * may do any cleanup here regardless.
 		 * 
 		 * @param connection The newly disconnected connection
 		 */
-		std::function<void(std::shared_ptr<HTTPServer::connection> connection)> on_disconnected;
+		std::function<void(std::shared_ptr<HTTPServer::connection> connection)> onDisconnected;
 		
 		/**
 		 * Callback for when there's a problem.
@@ -133,7 +133,7 @@ namespace ehttp
 		 * 
 		 * @param error The ASIO Error code
 		 */
-		std::function<void(asio::error_code error)> on_error;
+		std::function<void(asio::error_code error)> onError;
 		
 	protected:
 		/// Gets the server ready to accept a new connection
@@ -141,24 +141,24 @@ namespace ehttp
 		
 		
 		
-		/// Overridable emitter for #on_connected
-		virtual void event_connected(std::shared_ptr<HTTPServer::connection> connection) {
-			if(on_connected) on_connected(connection);
+		/// Overridable emitter for #onConnected
+		virtual void eventConnected(std::shared_ptr<HTTPServer::connection> connection) {
+			if(onConnected) onConnected(connection);
 		}
 		
-		/// Overridable emitter for #on_data
-		virtual void event_data(std::shared_ptr<HTTPServer::connection> connection, const char *data, std::size_t size) {
-			if(on_data) on_data(connection, data, size);
+		/// Overridable emitter for #onData
+		virtual void eventData(std::shared_ptr<HTTPServer::connection> connection, const char *data, std::size_t size) {
+			if(onData) onData(connection, data, size);
 		}
 		
-		/// Overridable emitter for #on_disconnected
-		virtual void event_disconnected(std::shared_ptr<HTTPServer::connection> connection) {
-			if(on_disconnected) on_disconnected(connection);
+		/// Overridable emitter for #onDisconnected
+		virtual void eventDisconnected(std::shared_ptr<HTTPServer::connection> connection) {
+			if(onDisconnected) onDisconnected(connection);
 		}
 		
-		/// Overridable emitter for #on_error
-		virtual void event_error(asio::error_code error) {
-			if(on_error) on_error(error);
+		/// Overridable emitter for #onError
+		virtual void eventError(asio::error_code error) {
+			if(onError) onError(error);
 		}
 		
 	private:
