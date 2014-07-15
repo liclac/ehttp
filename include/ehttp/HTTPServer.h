@@ -224,7 +224,7 @@ namespace ehttp
 		 * 
 		 * For internal use only.
 		 */
-		void read_chunk();
+		void readChunk();
 		
 		/**
 		 * \private
@@ -232,7 +232,7 @@ namespace ehttp
 		 * 
 		 * For internal use only.
 		 */
-		void write_next();
+		void writeNext();
 		
 	private:
 		struct impl;

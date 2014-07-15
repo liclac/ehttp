@@ -147,9 +147,9 @@ std::shared_ptr<HTTPResponse> HTTPResponse::write(const std::vector<char> &data)
 	if(!p->chunked)
 		 body.insert(body.end(), data.begin(), data.end());
 	else
-		this->begin_chunk()
+		this->chunk()
 			->write(data)
-			->end_chunk();
+			->endChunk();
 	
 	return shared_from_this();
 }
@@ -178,44 +178,44 @@ void HTTPResponse::end()
 		p->head_sent = true;
 		p->body_sent = true;
 		
-		event_data(shared_from_this(), this->to_http());
+		event_data(shared_from_this(), this->toHTTP());
 		event_end(shared_from_this());
 	}
 	else
 	{
 		// Chunked connections are terminated by an empty chunk
-		event_data(shared_from_this(), chunk(shared_from_this()).to_http());
+		event_data(shared_from_this(), Chunk(shared_from_this()).toHTTP());
 		event_end(shared_from_this());
 	}
 }
 
-std::shared_ptr<HTTPResponse> HTTPResponse::make_chunked()
+std::shared_ptr<HTTPResponse> HTTPResponse::makeChunked()
 {
 	// Ignore attempts to make an already chunked response chunked
 	if(p->chunked)
 		return shared_from_this();
 	
 	if(!on_data)
-		throw std::runtime_error("HTTPResponse::make_chunked() requires an on_data handler");
+		throw std::runtime_error("HTTPResponse::makeChunked() requires an on_data handler");
 	
 	p->chunked = true;
 	this->header("Transfer-Encoding", "chunked");
 	
 	p->head_sent = true;
-	event_data(shared_from_this(), this->to_http(true));
+	event_data(shared_from_this(), this->toHTTP(true));
 	
 	if(body.size() > 0)
 	{
-		std::shared_ptr<chunk> chk = this->begin_chunk();
+		std::shared_ptr<Chunk> chk = this->chunk();
 		chk->write(body);
 		body.clear();
-		chk->end_chunk();
+		chk->endChunk();
 	}
 	
 	return shared_from_this();
 }
 
-std::shared_ptr<HTTPResponse::chunk> HTTPResponse::begin_chunk()
+std::shared_ptr<HTTPResponse::Chunk> HTTPResponse::chunk()
 {
 	// This will be documented if it ever becomes possible to make it happen
 	if(p->head_sent && !p->chunked)
@@ -223,15 +223,15 @@ std::shared_ptr<HTTPResponse::chunk> HTTPResponse::begin_chunk()
 	if(p->ended)
 		throw std::logic_error("Attempted to begin a chunk on an ended response");
 	
-	return std::make_shared<chunk>(shared_from_this());
+	return std::make_shared<Chunk>(shared_from_this());
 }
 
-bool HTTPResponse::is_chunked() const
+bool HTTPResponse::isChunked() const
 {
 	return p->chunked;
 }
 
-std::vector<char> HTTPResponse::to_http(bool headers_only)
+std::vector<char> HTTPResponse::toHTTP(bool headers_only)
 {
 	std::stringstream ss;
 	
@@ -263,19 +263,19 @@ std::vector<char> HTTPResponse::to_http(bool headers_only)
 
 
 
-HTTPResponse::chunk::chunk(std::shared_ptr<HTTPResponse> res):
+HTTPResponse::Chunk::Chunk(std::shared_ptr<HTTPResponse> res):
 	res(res),
 	ended(false)
 {
 	
 }
 
-HTTPResponse::chunk::~chunk()
+HTTPResponse::Chunk::~Chunk()
 {
 	
 }
 
-std::shared_ptr<HTTPResponse::chunk> HTTPResponse::chunk::write(const std::vector<char> &data)
+std::shared_ptr<HTTPResponse::Chunk> HTTPResponse::Chunk::write(const std::vector<char> &data)
 {
 	if(ended)
 		throw std::logic_error("Attempted to write to an already ended chunk");
@@ -284,13 +284,13 @@ std::shared_ptr<HTTPResponse::chunk> HTTPResponse::chunk::write(const std::vecto
 	return shared_from_this();
 }
 
-std::shared_ptr<HTTPResponse::chunk> HTTPResponse::chunk::write(const std::string &data)
+std::shared_ptr<HTTPResponse::Chunk> HTTPResponse::Chunk::write(const std::string &data)
 {
 	this->write(std::vector<char>(data.begin(), data.end()));
 	return shared_from_this();
 }
 
-std::shared_ptr<HTTPResponse> HTTPResponse::chunk::end_chunk()
+std::shared_ptr<HTTPResponse> HTTPResponse::Chunk::endChunk()
 {
 	// Ignore attempts to end an already ended chunk
 	if(ended)
@@ -301,17 +301,17 @@ std::shared_ptr<HTTPResponse> HTTPResponse::chunk::end_chunk()
 		return res;
 	
 	if(!res->on_data)
-		throw std::runtime_error("HTTPResponse::chunk::end() requires an on_data handler");
+		throw std::runtime_error("HTTPResponse::Chunk::end() requires an on_data handler");
 	
 	ended = true;
 	
-	res->make_chunked();
-	res->event_data(res, this->to_http());
+	res->makeChunked();
+	res->event_data(res, this->toHTTP());
 	
 	return res;
 }
 
-std::vector<char> HTTPResponse::chunk::to_http()
+std::vector<char> HTTPResponse::Chunk::toHTTP()
 {
 	/*
 	 * Chunks are in the format:

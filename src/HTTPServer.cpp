@@ -144,7 +144,7 @@ void HTTPServer::connection::write(std::vector<char> data, std::function<void(co
 {
 	p->write_queue.push_back(data);
 	if(p->write_queue.size() == 1)
-		this->write_next();
+		this->writeNext();
 }
 
 void HTTPServer::connection::disconnect()
@@ -167,10 +167,10 @@ void HTTPServer::connection::connected()
 {
 	p->retain_self = shared_from_this();
 	p->srv->event_connected(shared_from_this());
-	this->read_chunk();
+	this->readChunk();
 }
 
-void HTTPServer::connection::read_chunk()
+void HTTPServer::connection::readChunk()
 {
 	p->socket.async_read_some(asio::buffer(p->read_buffer, kReadBufferSize),
 		[&](const asio::error_code &error, std::size_t bytes_transferred)
@@ -178,7 +178,7 @@ void HTTPServer::connection::read_chunk()
 		if(!error)
 		{
 			p->srv->event_data(shared_from_this(), &p->read_buffer[0], bytes_transferred);
-			this->read_chunk();
+			this->readChunk();
 		}
 		else
 		{
@@ -189,12 +189,12 @@ void HTTPServer::connection::read_chunk()
 	});
 }
 
-void HTTPServer::connection::write_next()
+void HTTPServer::connection::writeNext()
 {
 	std::vector<char> &data = p->write_queue[0];
 	asio::async_write(p->socket, asio::buffer(data), [=](const asio::error_code &error, std::size_t bytes_transferred) {
 		p->write_queue.pop_front();
 		if(p->write_queue.size() > 0)
-			this->write_next();
+			this->writeNext();
 	});
 }

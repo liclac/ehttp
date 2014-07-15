@@ -59,7 +59,7 @@ namespace ehttp
 		 *     res->begin(403)
 		 *         ->end()
 		 */
-		virtual void on_error(uint16_t code, handler_func handler);
+		virtual void onError(uint16_t code, handler_func handler);
 		
 		/**
 		 * Attempts to route a request.
@@ -89,7 +89,7 @@ namespace ehttp
 		 * 
 		 * @see on_error
 		 */
-		void wrap_response_handlers(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res);
+		void wrapResponseHandlers(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res);
 		
 	private:
 		struct impl;

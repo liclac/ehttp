@@ -51,7 +51,7 @@ void RequestRouter::on(std::string method, std::string path, handler_func handle
 	node->handler = handler;
 }
 
-void RequestRouter::on_error(uint16_t code, handler_func handler)
+void RequestRouter::onError(uint16_t code, handler_func handler)
 {
 	p->status_handlers[code] = handler;
 }
@@ -65,7 +65,7 @@ void RequestRouter::route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTP
 	// Set callbacks that call status handlers where appropriate
 	auto old_on_data = res->on_data;
 	auto old_on_end = res->on_end;
-	wrap_response_handlers(req, res);
+	wrapResponseHandlers(req, res);
 	
 	// Extract only the path components; note that the HTTP specs say requests
 	// may contain anything from only the path to a full URL.
@@ -117,7 +117,7 @@ void RequestRouter::route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTP
 	}
 }
 
-void RequestRouter::wrap_response_handlers(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)
+void RequestRouter::wrapResponseHandlers(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)
 {
 	auto old_on_data = res->on_data;
 	auto old_on_end = res->on_end;
@@ -133,7 +133,7 @@ void RequestRouter::wrap_response_handlers(std::shared_ptr<HTTPRequest> req, std
 		 * buffer the response because we may want to fire a status handler
 		 * instead of actually sending the data it presents.
 		 */
-		if(!res->is_chunked() && p->status_handlers.find(res->code) != p->status_handlers.end())
+		if(!res->isChunked() && p->status_handlers.find(res->code) != p->status_handlers.end())
 		{
 			// on_data should buffer data rather than send it to the client
 			res->on_data = [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
@@ -150,7 +150,7 @@ void RequestRouter::wrap_response_handlers(std::shared_ptr<HTTPRequest> req, std
 				bool status_handler_fired = false;
 				
 				// Only fire handlers for empty, non-chunked responses
-				if(!res->is_chunked() && res->body.size() == 0)
+				if(!res->isChunked() && res->body.size() == 0)
 				{
 					auto status_handler_it = p->status_handlers.find(res->code);
 					if(status_handler_it != p->status_handlers.end() && status_handler_it->second)

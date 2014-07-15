@@ -27,8 +27,8 @@ namespace ehttp
 	 *         ->write("Lorem ipsum dolor sit amet")
 	 *         ->end()
 	 * 
-	 * To make a chunked response, either use begin_chunk(), chunk::write() and
-	 * chunk::end_chunk(), or call make_chunked(), which will cause all
+	 * To make a chunked response, either use chunk(), chunk::write() and
+	 * chunk::endChunk(), or call makeChunked(), which will cause all
 	 * sequential write() calls to write chunks.
 	 * 
 	 * You don't have to care whether a response is chunked or not at any given
@@ -41,7 +41,7 @@ namespace ehttp
 	class HTTPResponse : public std::enable_shared_from_this<HTTPResponse>
 	{
 	public:
-		class chunk;
+		class Chunk;
 		
 		/// Constructor
 		HTTPResponse(std::shared_ptr<HTTPRequest> req = nullptr, std::function<void(std::shared_ptr<HTTPResponse> res, std::vector<char> data)> on_data = nullptr, std::function<void(std::shared_ptr<HTTPResponse> res)> on_end = nullptr);
@@ -94,7 +94,7 @@ namespace ehttp
 		/**
 		 * Makes the response chunked.
 		 * 
-		 * This is automatically called from chunk::end_chunk(), and sets a
+		 * This is automatically called from chunk::endChunk(), and sets a
 		 * flag that will make any subsequent calls to write() send chunks
 		 * rather than append to the #body buffer.
 		 * 
@@ -102,27 +102,27 @@ namespace ehttp
 		 * 
 		 * @throws std::runtime_error if #on_data is NULL.
 		 */
-		std::shared_ptr<HTTPResponse> make_chunked();
+		std::shared_ptr<HTTPResponse> makeChunked();
 		
 		/**
 		 * Begins a chunk.
 		 * 
-		 * Use chunk::end_chunk() to end it and write it out.
+		 * Use chunk::endChunk() to end it and write it out.
 		 * 
 		 * There is no reference counting for this or anything - if you realize
 		 * after you've begun a chunk that you don't actually need to send it,
-		 * just don't call chunk::end_chunk() on it.\n
+		 * just don't call chunk::endChunk() on it.\n
 		 * Chunks keep a std::shared_ptr to their parent response, which means
 		 * that the response will not be destroyed until all of its chunks are.
 		 * 
 		 * @throws std::logic_error if the response has already ended
 		 */
-		std::shared_ptr<chunk> begin_chunk();
+		std::shared_ptr<Chunk> chunk();
 		
 		/**
 		 * Is the current response chunked?
 		 */
-		bool is_chunked() const;
+		bool isChunked() const;
 		
 		
 		
@@ -133,7 +133,7 @@ namespace ehttp
 		 * 
 		 * @param headers_only Only include headers, not the body.
 		 */
-		std::vector<char> to_http(bool headers_only = false);
+		std::vector<char> toHTTP(bool headers_only = false);
 		
 		
 		
@@ -190,26 +190,26 @@ namespace ehttp
 	/**
 	 * Represents a chunk in a \ref HTTPResponse.
 	 */
-	class HTTPResponse::chunk : public std::enable_shared_from_this<HTTPResponse::chunk>
+	class HTTPResponse::Chunk : public std::enable_shared_from_this<HTTPResponse::Chunk>
 	{
 	public:
 		/**
 		 * Constructor, typically not called directly.
-		 * Instead, you should use HTTPResponse::begin_chunk() to create chunks.
+		 * Instead, you should use HTTPResponse::chunk() to create chunks.
 		 * This is exposed mainly for unit testing purposes.
 		 * @param res The response the chunk is part of
 		 */
-		chunk(std::shared_ptr<HTTPResponse> res);
-		virtual ~chunk();
+		Chunk(std::shared_ptr<HTTPResponse> res);
+		virtual ~Chunk();
 		
 		/**
 		 * Appends data to the chunk body.
 		 * 
 		 * @throws std::logic_error if end() has already been called.
 		 */
-		std::shared_ptr<HTTPResponse::chunk> write(const std::vector<char> &data);
+		std::shared_ptr<HTTPResponse::Chunk> write(const std::vector<char> &data);
 		/// @overload
-		std::shared_ptr<HTTPResponse::chunk> write(const std::string &data);
+		std::shared_ptr<HTTPResponse::Chunk> write(const std::string &data);
 		
 		/**
 		 * Ends the chunk.
@@ -224,9 +224,9 @@ namespace ehttp
 		 * 
 		 *     res->begin()
 		 *         ->header("Content-Type", "text/plain")
-		 *         ->begin_chunk()
+		 *         ->chunk()
 		 *             ->write("Lorem ipsum dolor sit amet")
-		 *             //Forgot to do ->end_chunk()!
+		 *             //Forgot to do ->endChunk()!
 		 *         ->end()
 		 * 
 		 * If this was named "end" as well, this would cause the response to
@@ -237,12 +237,12 @@ namespace ehttp
 		 * 
 		 * @throws std::runtime_error if HTTPResponse::on_data in #res isn't set.
 		 */
-		std::shared_ptr<HTTPResponse> end_chunk();
+		std::shared_ptr<HTTPResponse> endChunk();
 		
 		
 		
 		/// Returns the chunk formatted according to the HTTP specification.
-		std::vector<char> to_http();
+		std::vector<char> toHTTP();
 		
 		
 		
