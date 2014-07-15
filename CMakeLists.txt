@@ -11,7 +11,7 @@ add_subdirectory(src)
 #add_subdirectory(examples)
 
 enable_testing()
-add_subdirectory(test)
+#add_subdirectory(test)
 
 # Add a custom 'make check' target to get output when a test fails
 # Taken from http://stackoverflow.com/questions/16158091/

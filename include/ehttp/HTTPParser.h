@@ -1,9 +1,9 @@
-#ifndef EHTTP_PARSER_H
-#define EHTTP_PARSER_H
+#ifndef EHTTP_HTTPPARSER_H
+#define EHTTP_HTTPPARSER_H
 
 #include <functional>
 #include <memory>
-#include "erequest.h"
+#include "HTTPRequest.h"
 
 namespace ehttp
 {
@@ -13,20 +13,20 @@ namespace ehttp
 	 * You should keep an instance of this class per connection, and feed it
 	 * any data you receive.
 	 */
-	class eparser
+	class HTTPParser
 	{
 	public:
-		eparser();
-		virtual ~eparser();
+		HTTPParser();
+		virtual ~HTTPParser();
 		
-		/// The return value of parse_chunk().
-		enum status {
+		/// The return value of parseChunk().
+		enum Status {
 			/// There was an error parsing the data; it's most likely invalid
-			error = -1,
+			Error = -1,
 			/// No problem, but we haven't got all the data yet, keep feeding
-			keep_going = 0,
+			KeepGoing = 0,
 			/// Success! We got a request (retreive with request())
-			got_request = 1
+			GotRequest = 1
 		};
 		
 		/**
@@ -38,17 +38,17 @@ namespace ehttp
 		 * 
 		 * @see request()
 		 */
-		eparser::status parse_chunk(const char *data, std::size_t length);
+		HTTPParser::Status parseChunk(const char *data, std::size_t length);
 		
 		/**
 		 * Retreive the parsed request.
 		 * 
-		 * This will be 0 at all times except between a parse_chunk() that
-		 * returned #got_request, and the next call to parse_chunk(). Thus,
+		 * This will be 0 at all times except between a parseChunk() that
+		 * returned #GotRequest, and the next call to parseChunk(). Thus,
 		 * when a request is returned, you should store it elsewhere, since it
 		 * will be cleared the next time data is received from the client.
 		 */
-		std::shared_ptr<erequest> req();
+		std::shared_ptr<HTTPRequest> req();
 		
 	private:
 		struct impl;

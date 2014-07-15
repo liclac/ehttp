@@ -1,4 +1,4 @@
-#include <ehttp/http_server.h>
+#include <ehttp/AppServer.h>
 
 // Used by the example on_end below
 /*
@@ -9,42 +9,42 @@
 
 using namespace ehttp;
 
-void http_server::event_connected(std::shared_ptr<eserver::connection> connection)
+void AppServer::event_connected(std::shared_ptr<HTTPServer::connection> connection)
 {
 	// If you want to do some setup when the connection is established (such
 	// as if you used pointers for context objects), do it here.
 	
-	eserver::event_connected(connection);
+	HTTPServer::event_connected(connection);
 }
 
-void http_server::event_disconnected(std::shared_ptr<eserver::connection> connection)
+void AppServer::event_disconnected(std::shared_ptr<HTTPServer::connection> connection)
 {
 	// Delete the context data for the disconnected connection
 	contexts.erase(connection);
 	
-	eserver::event_disconnected(connection);
+	HTTPServer::event_disconnected(connection);
 }
 
-void http_server::event_data(std::shared_ptr<eserver::connection> connection, const char *data, std::size_t size)
+void AppServer::event_data(std::shared_ptr<HTTPServer::connection> connection, const char *data, std::size_t size)
 {
 	// std::map's operator[] implicitly creates an object if it doesn't exist,
 	// and then returns a reference to it. Thus, no need to do it manually!
 	context &ctx = contexts[connection];
 	
 	// Parse until we get a request; note: we need one parser per connection!
-	if(ctx.psr.parse_chunk(data, size) == eparser::got_request)
+	if(ctx.psr.parseChunk(data, size) == HTTPParser::GotRequest)
 	{
-		std::shared_ptr<erequest> req = ctx.psr.req();
-		std::shared_ptr<eresponse> res = std::make_shared<eresponse>(req);
+		std::shared_ptr<HTTPRequest> req = ctx.psr.req();
+		std::shared_ptr<HTTPResponse> res = std::make_shared<HTTPResponse>(req);
 		
 		// Just set up the response to feed written data back to the connection
-		res->on_data = [=](std::shared_ptr<eresponse> res, std::vector<char> data) {
+		res->on_data = [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
 			connection->write(data);
 		};
 		
 		// If you want to log responses, on_end is the place to do it!
 		/*
-		res->on_end = [=](std::shared_ptr<eresponse> res) {
+		res->on_end = [=](std::shared_ptr<HTTPResponse> res) {
 			char timestamp[128] = {0};
 			
 			// The if() is because it's possible for strftime() to fail,
@@ -64,12 +64,12 @@ void http_server::event_data(std::shared_ptr<eserver::connection> connection, co
 		event_request(connection, req, res);
 	}
 	
-	eserver::event_data(connection, data, size);
+	HTTPServer::event_data(connection, data, size);
 }
 
-void http_server::event_error(asio::error_code error)
+void AppServer::event_error(asio::error_code error)
 {
 	// If you want to handle errors
 	
-	eserver::event_error(error);
+	HTTPServer::event_error(error);
 }

@@ -1,6 +1,6 @@
 #include <unordered_map>
 #include <stdexcept>
-#include <ehttp/eresponse.h>
+#include <ehttp/HTTPResponse.h>
 
 using namespace ehttp;
 
@@ -82,7 +82,7 @@ static const std::unordered_map<uint16_t,std::string> standard_statuses = {
 
 
 /// \private
-struct eresponse::impl
+struct HTTPResponse::impl
 {
 	bool chunked, head_sent, body_sent, ended;
 	
@@ -91,7 +91,7 @@ struct eresponse::impl
 	{}
 };
 
-eresponse::eresponse(std::shared_ptr<erequest> req, std::function<void(std::shared_ptr<eresponse> res, std::vector<char> data)> on_data, std::function<void(std::shared_ptr<eresponse> res)> on_end):
+HTTPResponse::HTTPResponse(std::shared_ptr<HTTPRequest> req, std::function<void(std::shared_ptr<HTTPResponse> res, std::vector<char> data)> on_data, std::function<void(std::shared_ptr<HTTPResponse> res)> on_end):
 	req(req),
 	code(0),
 	on_data(on_data), on_end(on_end),
@@ -100,12 +100,12 @@ eresponse::eresponse(std::shared_ptr<erequest> req, std::function<void(std::shar
 	
 }
 
-eresponse::~eresponse()
+HTTPResponse::~HTTPResponse()
 {
 	delete p;
 }
 
-std::shared_ptr<eresponse> eresponse::begin(uint16_t code, std::string custom_reason)
+std::shared_ptr<HTTPResponse> HTTPResponse::begin(uint16_t code, std::string custom_reason)
 {
 	if(code != 0)
 	{
@@ -129,7 +129,7 @@ std::shared_ptr<eresponse> eresponse::begin(uint16_t code, std::string custom_re
 	return shared_from_this();
 }
 
-std::shared_ptr<eresponse> eresponse::header(std::string name, std::string value)
+std::shared_ptr<HTTPResponse> HTTPResponse::header(std::string name, std::string value)
 {
 	if(p->head_sent)
 		throw std::logic_error("Attempted to modify already sent headers");
@@ -139,7 +139,7 @@ std::shared_ptr<eresponse> eresponse::header(std::string name, std::string value
 	return shared_from_this();
 }
 
-std::shared_ptr<eresponse> eresponse::write(const std::vector<char> &data)
+std::shared_ptr<HTTPResponse> HTTPResponse::write(const std::vector<char> &data)
 {
 	if(p->body_sent)
 		throw std::logic_error("Attempted to write to an already sent response");
@@ -154,20 +154,20 @@ std::shared_ptr<eresponse> eresponse::write(const std::vector<char> &data)
 	return shared_from_this();
 }
 
-std::shared_ptr<eresponse> eresponse::write(const std::string &data)
+std::shared_ptr<HTTPResponse> HTTPResponse::write(const std::string &data)
 {
 	this->write(std::vector<char>(data.begin(), data.end()));
 	return shared_from_this();
 }
 
-void eresponse::end()
+void HTTPResponse::end()
 {
 	// Ignore attempts to end an already ended response
 	if(p->ended)
 		return;
 	
 	if(!on_data)
-		throw std::runtime_error("eresponse::end() for non-chunked responses requires an on_data handler");
+		throw std::runtime_error("HTTPResponse::end() for non-chunked responses requires an on_data handler");
 	
 	p->ended = true;
 	
@@ -189,14 +189,14 @@ void eresponse::end()
 	}
 }
 
-std::shared_ptr<eresponse> eresponse::make_chunked()
+std::shared_ptr<HTTPResponse> HTTPResponse::make_chunked()
 {
 	// Ignore attempts to make an already chunked response chunked
 	if(p->chunked)
 		return shared_from_this();
 	
 	if(!on_data)
-		throw std::runtime_error("eresponse::make_chunked() requires an on_data handler");
+		throw std::runtime_error("HTTPResponse::make_chunked() requires an on_data handler");
 	
 	p->chunked = true;
 	this->header("Transfer-Encoding", "chunked");
@@ -215,7 +215,7 @@ std::shared_ptr<eresponse> eresponse::make_chunked()
 	return shared_from_this();
 }
 
-std::shared_ptr<eresponse::chunk> eresponse::begin_chunk()
+std::shared_ptr<HTTPResponse::chunk> HTTPResponse::begin_chunk()
 {
 	// This will be documented if it ever becomes possible to make it happen
 	if(p->head_sent && !p->chunked)
@@ -226,12 +226,12 @@ std::shared_ptr<eresponse::chunk> eresponse::begin_chunk()
 	return std::make_shared<chunk>(shared_from_this());
 }
 
-bool eresponse::is_chunked() const
+bool HTTPResponse::is_chunked() const
 {
 	return p->chunked;
 }
 
-std::vector<char> eresponse::to_http(bool headers_only)
+std::vector<char> HTTPResponse::to_http(bool headers_only)
 {
 	std::stringstream ss;
 	
@@ -263,19 +263,19 @@ std::vector<char> eresponse::to_http(bool headers_only)
 
 
 
-eresponse::chunk::chunk(std::shared_ptr<eresponse> res):
+HTTPResponse::chunk::chunk(std::shared_ptr<HTTPResponse> res):
 	res(res),
 	ended(false)
 {
 	
 }
 
-eresponse::chunk::~chunk()
+HTTPResponse::chunk::~chunk()
 {
 	
 }
 
-std::shared_ptr<eresponse::chunk> eresponse::chunk::write(const std::vector<char> &data)
+std::shared_ptr<HTTPResponse::chunk> HTTPResponse::chunk::write(const std::vector<char> &data)
 {
 	if(ended)
 		throw std::logic_error("Attempted to write to an already ended chunk");
@@ -284,13 +284,13 @@ std::shared_ptr<eresponse::chunk> eresponse::chunk::write(const std::vector<char
 	return shared_from_this();
 }
 
-std::shared_ptr<eresponse::chunk> eresponse::chunk::write(const std::string &data)
+std::shared_ptr<HTTPResponse::chunk> HTTPResponse::chunk::write(const std::string &data)
 {
 	this->write(std::vector<char>(data.begin(), data.end()));
 	return shared_from_this();
 }
 
-std::shared_ptr<eresponse> eresponse::chunk::end_chunk()
+std::shared_ptr<HTTPResponse> HTTPResponse::chunk::end_chunk()
 {
 	// Ignore attempts to end an already ended chunk
 	if(ended)
@@ -301,7 +301,7 @@ std::shared_ptr<eresponse> eresponse::chunk::end_chunk()
 		return res;
 	
 	if(!res->on_data)
-		throw std::runtime_error("eresponse::chunk::end() requires an on_data handler");
+		throw std::runtime_error("HTTPResponse::chunk::end() requires an on_data handler");
 	
 	ended = true;
 	
@@ -311,7 +311,7 @@ std::shared_ptr<eresponse> eresponse::chunk::end_chunk()
 	return res;
 }
 
-std::vector<char> eresponse::chunk::to_http()
+std::vector<char> HTTPResponse::chunk::to_http()
 {
 	/*
 	 * Chunks are in the format:

@@ -11,25 +11,25 @@ namespace ehttp
 	/**
 	 * Represents an HTTP Request.
 	 * 
-	 * Instances of this class are typically created by ehttp::parser, but you
+	 * Instances of this class are typically created by HTTPParser, but you
 	 * can also create them manually if you have a different means of parsing
 	 * a request, or for testing purposes.
 	 * 
 	 * It's a dumb container, change values at will.
 	 */
-	class erequest
+	class HTTPRequest
 	{
 	public:
 		/// Case-insensitive string-to-string map
 		typedef std::map<std::string,std::string,util::ci_less> header_map;
 		
 		/// Constructor
-		erequest(std::string method = "", std::string url = "", header_map headers = header_map{}, std::vector<char> body = {}, bool upgrade = false);
-		virtual ~erequest();
+		HTTPRequest(std::string method = "", std::string url = "", header_map headers = header_map{}, std::vector<char> body = {}, bool upgrade = false);
+		virtual ~HTTPRequest();
 		
 		/// Request Method (also known as Verb); ex: GET, POST, DELETE, ...
 		std::string method;
-		/// Unparsed Request URL (tip: use the \ref eurl class)
+		/// Unparsed Request URL (tip: use the \ref URL class)
 		std::string url;
 		
 		/// Request headers (case insensitive keys)

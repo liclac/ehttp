@@ -1,17 +1,17 @@
-#ifndef EHTTP_HTTP_SERVER_H
-#define EHTTP_HTTP_SERVER_H
+#ifndef EHTTP_APPSERVER_H
+#define EHTTP_APPSERVER_H
 
 #include <functional>
-#include "eserver.h"
-#include "eparser.h"
-#include "erequest.h"
-#include "eresponse.h"
-#include "erouter.h"
+#include "HTTPServer.h"
+#include "HTTPParser.h"
+#include "HTTPRequest.h"
+#include "HTTPResponse.h"
+#include "RequestRouter.h"
 
 namespace ehttp
 {
 	/**
-	 * A convenience class that combines \ref eserver and \ref eparser.
+	 * A convenience class that combines \ref HTTPServer and \ref HTTPParser.
 	 * 
 	 * If your application does not already have an HTTP or TCP server set up,
 	 * or simply does not have any special needs that would necessitate a
@@ -22,15 +22,15 @@ namespace ehttp
 	 * This also serves as an example of a custom server implementation, and as
 	 * such it's more extensively documented than the rest of the library.
 	 */
-	class http_server : public eserver
+	class AppServer : public HTTPServer
 	{
 	public:
-		using eserver::eserver;
+		using HTTPServer::HTTPServer;
 		
 		/**
 		 * Optional router for handling requests.
 		 */
-		std::shared_ptr<erouter> rtr;
+		std::shared_ptr<RequestRouter> rtr;
 		
 		/**
 		 * Callback for when a new request is received.
@@ -39,22 +39,22 @@ namespace ehttp
 		 * @param req The received request
 		 * @param res A response object that writes back to the connection
 		 */
-		std::function<void(std::shared_ptr<eserver::connection> connection, std::shared_ptr<erequest> req, std::shared_ptr<eresponse> res)> on_request;
+		std::function<void(std::shared_ptr<HTTPServer::connection> connection, std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)> on_request;
 		
 	protected:
 		/// Overridable emitter for #on_request
-		virtual void event_request(std::shared_ptr<eserver::connection> connection, std::shared_ptr<erequest> req, std::shared_ptr<eresponse> res) {
+		virtual void event_request(std::shared_ptr<HTTPServer::connection> connection, std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
 			if(on_request) on_request(connection, req, res);
 		}
 		
-		virtual void event_connected(std::shared_ptr<eserver::connection> connection) override;
-		virtual void event_disconnected(std::shared_ptr<eserver::connection> connection) override;
-		virtual void event_data(std::shared_ptr<eserver::connection> connection, const char *data, std::size_t size) override;
+		virtual void event_connected(std::shared_ptr<HTTPServer::connection> connection) override;
+		virtual void event_disconnected(std::shared_ptr<HTTPServer::connection> connection) override;
+		virtual void event_data(std::shared_ptr<HTTPServer::connection> connection, const char *data, std::size_t size) override;
 		virtual void event_error(asio::error_code error) override;
 		
 		/// Struct for keeping context data
 		struct context {
-			eparser psr;	///< A parser for the connection
+			HTTPParser psr;		///< A parser for the connection
 		};
 		/// Map between connections and contexts
 		std::map<std::shared_ptr<connection>, context> contexts;

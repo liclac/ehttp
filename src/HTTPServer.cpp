@@ -1,5 +1,5 @@
 #include <iostream>
-#include <ehttp/eserver.h>
+#include <ehttp/HTTPServer.h>
 
 using namespace ehttp;
 using namespace asio;
@@ -10,7 +10,7 @@ using namespace asio::ip;
 
 
 /// \private
-struct eserver::impl
+struct HTTPServer::impl
 {
 	io_service service;
 	
@@ -26,7 +26,7 @@ struct eserver::impl
 
 
 
-eserver::eserver(unsigned int workers):
+HTTPServer::HTTPServer(unsigned int workers):
 	p(new impl)
 {
 	p->work = new io_service::work(p->service);
@@ -35,7 +35,7 @@ eserver::eserver(unsigned int workers):
 		p->worker_threads.emplace_back([&]{ p->service.run(); });
 }
 
-eserver::~eserver()
+HTTPServer::~HTTPServer()
 {
 	delete p->work;
 	p->acceptor.close();
@@ -46,7 +46,7 @@ eserver::~eserver()
 	delete p;
 }
 
-asio::error_code eserver::listen(const tcp::endpoint &endpoint)
+asio::error_code HTTPServer::listen(const tcp::endpoint &endpoint)
 {
 	asio::error_code error;
 	
@@ -63,34 +63,34 @@ asio::error_code eserver::listen(const tcp::endpoint &endpoint)
 	return error;
 }
 
-asio::error_code eserver::listen(const std::string &address, const uint16_t &port)
+asio::error_code HTTPServer::listen(const std::string &address, const uint16_t &port)
 {
 	return this->listen(tcp::endpoint(address::from_string(address), port));
 }
 
-asio::error_code eserver::listen(const uint16_t &port)
+asio::error_code HTTPServer::listen(const uint16_t &port)
 {
 	return this->listen(tcp::endpoint(tcp::v4(), port));
 }
 
-void eserver::run()
+void HTTPServer::run()
 {
 	p->service.run();
 }
 
-void eserver::stop()
+void HTTPServer::stop()
 {
 	p->service.stop();
 }
 
-void eserver::poll()
+void HTTPServer::poll()
 {
 	p->service.poll();
 }
 
-void eserver::accept()
+void HTTPServer::accept()
 {
-	std::shared_ptr<eserver::connection> connection = std::make_shared<eserver::connection>(this, p->service);
+	std::shared_ptr<HTTPServer::connection> connection = std::make_shared<HTTPServer::connection>(this, p->service);
 	
 	p->acceptor.async_accept(connection->socket(), [=](const asio::error_code &error)
 	{
@@ -106,12 +106,12 @@ void eserver::accept()
 
 
 /// \private
-struct eserver::connection::impl
+struct HTTPServer::connection::impl
 {
 	// Prevent autodeletion while in use
-	std::shared_ptr<eserver::connection> retain_self;
+	std::shared_ptr<HTTPServer::connection> retain_self;
 	
-	eserver *srv;
+	HTTPServer *srv;
 	
 	io_service &service;
 	tcp::socket socket;
@@ -126,28 +126,28 @@ struct eserver::connection::impl
 
 
 
-eserver::connection::connection(eserver *srv, io_service &service):
+HTTPServer::connection::connection(HTTPServer *srv, io_service &service):
 	p(new impl(service))
 {
 	p->srv = srv;
 	p->read_buffer.resize(kReadBufferSize);
 }
 
-eserver::connection::~connection()
+HTTPServer::connection::~connection()
 {
 	delete p;
 }
 
-tcp::socket& eserver::connection::socket() { return p->socket; }
+tcp::socket& HTTPServer::connection::socket() { return p->socket; }
 
-void eserver::connection::write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback)
+void HTTPServer::connection::write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback)
 {
 	p->write_queue.push_back(data);
 	if(p->write_queue.size() == 1)
 		this->write_next();
 }
 
-void eserver::connection::disconnect()
+void HTTPServer::connection::disconnect()
 {
 	if(p->socket.is_open())
 	{
@@ -163,14 +163,14 @@ void eserver::connection::disconnect()
 	p->retain_self.reset();
 }
 
-void eserver::connection::connected()
+void HTTPServer::connection::connected()
 {
 	p->retain_self = shared_from_this();
 	p->srv->event_connected(shared_from_this());
 	this->read_chunk();
 }
 
-void eserver::connection::read_chunk()
+void HTTPServer::connection::read_chunk()
 {
 	p->socket.async_read_some(asio::buffer(p->read_buffer, kReadBufferSize),
 		[&](const asio::error_code &error, std::size_t bytes_transferred)
@@ -189,7 +189,7 @@ void eserver::connection::read_chunk()
 	});
 }
 
-void eserver::connection::write_next()
+void HTTPServer::connection::write_next()
 {
 	std::vector<char> &data = p->write_queue[0];
 	asio::async_write(p->socket, asio::buffer(data), [=](const asio::error_code &error, std::size_t bytes_transferred) {

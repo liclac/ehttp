@@ -3,8 +3,8 @@
 
 #include <cstdint>
 #include <memory>
-#include "erequest.h"
-#include "eresponse.h"
+#include "HTTPRequest.h"
+#include "HTTPResponse.h"
 
 namespace ehttp
 {
@@ -20,15 +20,15 @@ namespace ehttp
 	 * @todo A `mountpoint` class that can be mounted onto arbitrary points in
 	 * the tree, handling any request to antyhing under it.
 	 */
-	class erouter
+	class RequestRouter
 	{
 	public:
 		/// Constructor
-		erouter();
-		virtual ~erouter();
+		RequestRouter();
+		virtual ~RequestRouter();
 		
 		/// Signature for a handler function
-		typedef std::function<void(std::shared_ptr<erequest> req, std::shared_ptr<eresponse> res)> handler_func;
+		typedef std::function<void(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)> handler_func;
 		
 		/**
 		 * Registers a handler function for an endpoint.
@@ -68,7 +68,7 @@ namespace ehttp
 		 * or fire an empty response using #fallback_code to trigger a status
 		 * handler if none is found.
 		 */
-		virtual void route(std::shared_ptr<erequest> req, std::shared_ptr<eresponse> res);
+		virtual void route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res);
 		
 		
 		
@@ -89,7 +89,7 @@ namespace ehttp
 		 * 
 		 * @see on_error
 		 */
-		void wrap_response_handlers(std::shared_ptr<erequest> req, std::shared_ptr<eresponse> res);
+		void wrap_response_handlers(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res);
 		
 	private:
 		struct impl;
