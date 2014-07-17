@@ -24,7 +24,7 @@ namespace ehttp
 	class HTTPServer
 	{
 	public:
-		class connection;
+		class Connection;
 		
 		/**
 		 * Constructor.
@@ -103,7 +103,7 @@ namespace ehttp
 		 * 
 		 * @param connection The newly established connection
 		 */
-		std::function<void(std::shared_ptr<HTTPServer::connection> connection)> onConnected;
+		std::function<void(std::shared_ptr<HTTPServer::Connection> connection)> onConnected;
 		
 		/**
 		 * Callback for when a connection receives data.
@@ -112,7 +112,7 @@ namespace ehttp
 		 * @param data Pointer to the response data; this is only guaranteed to be valid until this callback returns
 		 * @param size Size of the response data
 		 */
-		std::function<void(std::shared_ptr<HTTPServer::connection> connection, const char *data, std::size_t size)> onData;
+		std::function<void(std::shared_ptr<HTTPServer::Connection> connection, const char *data, std::size_t size)> onData;
 		
 		/**
 		 * Callback for when a connection is disconnected.
@@ -123,7 +123,7 @@ namespace ehttp
 		 * 
 		 * @param connection The newly disconnected connection
 		 */
-		std::function<void(std::shared_ptr<HTTPServer::connection> connection)> onDisconnected;
+		std::function<void(std::shared_ptr<HTTPServer::Connection> connection)> onDisconnected;
 		
 		/**
 		 * Callback for when there's a problem.
@@ -142,17 +142,17 @@ namespace ehttp
 		
 		
 		/// Overridable emitter for #onConnected
-		virtual void eventConnected(std::shared_ptr<HTTPServer::connection> connection) {
+		virtual void eventConnected(std::shared_ptr<HTTPServer::Connection> connection) {
 			if(onConnected) onConnected(connection);
 		}
 		
 		/// Overridable emitter for #onData
-		virtual void eventData(std::shared_ptr<HTTPServer::connection> connection, const char *data, std::size_t size) {
+		virtual void eventData(std::shared_ptr<HTTPServer::Connection> connection, const char *data, std::size_t size) {
 			if(onData) onData(connection, data, size);
 		}
 		
 		/// Overridable emitter for #onDisconnected
-		virtual void eventDisconnected(std::shared_ptr<HTTPServer::connection> connection) {
+		virtual void eventDisconnected(std::shared_ptr<HTTPServer::Connection> connection) {
 			if(onDisconnected) onDisconnected(connection);
 		}
 		
@@ -176,7 +176,7 @@ namespace ehttp
 	 * When you are done with a connection, you should thus always call
 	 * disconnect() on it to prevent it from just laying around.
 	 */
-	class HTTPServer::connection : public std::enable_shared_from_this<HTTPServer::connection>
+	class HTTPServer::Connection : public std::enable_shared_from_this<HTTPServer::Connection>
 	{
 	public:
 		/**
@@ -184,8 +184,8 @@ namespace ehttp
 		 * @param srv The parent server
 		 * @param service The ASIO service
 		 */
-		connection(HTTPServer *srv, io_service &service);
-		virtual ~connection();
+		Connection(HTTPServer *srv, io_service &service);
+		virtual ~Connection();
 		
 		/// Returns the connection's ASIO socket
 		tcp::socket& socket();

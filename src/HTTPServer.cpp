@@ -90,7 +90,7 @@ void HTTPServer::poll()
 
 void HTTPServer::accept()
 {
-	std::shared_ptr<HTTPServer::connection> connection = std::make_shared<HTTPServer::connection>(this, p->service);
+	std::shared_ptr<HTTPServer::Connection> connection = std::make_shared<HTTPServer::Connection>(this, p->service);
 	
 	p->acceptor.async_accept(connection->socket(), [=](const asio::error_code &error)
 	{
@@ -106,10 +106,10 @@ void HTTPServer::accept()
 
 
 /// \private
-struct HTTPServer::connection::impl
+struct HTTPServer::Connection::impl
 {
 	// Prevent autodeletion while in use
-	std::shared_ptr<HTTPServer::connection> retain_self;
+	std::shared_ptr<HTTPServer::Connection> retain_self;
 	
 	HTTPServer *srv;
 	
@@ -126,28 +126,28 @@ struct HTTPServer::connection::impl
 
 
 
-HTTPServer::connection::connection(HTTPServer *srv, io_service &service):
+HTTPServer::Connection::Connection(HTTPServer *srv, io_service &service):
 	p(new impl(service))
 {
 	p->srv = srv;
 	p->read_buffer.resize(kReadBufferSize);
 }
 
-HTTPServer::connection::~connection()
+HTTPServer::Connection::~Connection()
 {
 	delete p;
 }
 
-tcp::socket& HTTPServer::connection::socket() { return p->socket; }
+tcp::socket& HTTPServer::Connection::socket() { return p->socket; }
 
-void HTTPServer::connection::write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback)
+void HTTPServer::Connection::write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback)
 {
 	p->write_queue.push_back(data);
 	if(p->write_queue.size() == 1)
 		this->writeNext();
 }
 
-void HTTPServer::connection::disconnect()
+void HTTPServer::Connection::disconnect()
 {
 	if(p->socket.is_open())
 	{
@@ -163,14 +163,14 @@ void HTTPServer::connection::disconnect()
 	p->retain_self.reset();
 }
 
-void HTTPServer::connection::connected()
+void HTTPServer::Connection::connected()
 {
 	p->retain_self = shared_from_this();
 	p->srv->eventConnected(shared_from_this());
 	this->readChunk();
 }
 
-void HTTPServer::connection::readChunk()
+void HTTPServer::Connection::readChunk()
 {
 	p->socket.async_read_some(asio::buffer(p->read_buffer, kReadBufferSize),
 		[&](const asio::error_code &error, std::size_t bytes_transferred)
@@ -189,7 +189,7 @@ void HTTPServer::connection::readChunk()
 	});
 }
 
-void HTTPServer::connection::writeNext()
+void HTTPServer::Connection::writeNext()
 {
 	std::vector<char> &data = p->write_queue[0];
 	asio::async_write(p->socket, asio::buffer(data), [=](const asio::error_code &error, std::size_t bytes_transferred) {
