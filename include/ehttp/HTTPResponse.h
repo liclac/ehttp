@@ -27,7 +27,7 @@ namespace ehttp
 	 *         ->write("Lorem ipsum dolor sit amet")
 	 *         ->end()
 	 * 
-	 * To make a chunked response, either use chunk(), chunk::write() and
+	 * To make a chunked response, either use beginChunk(), chunk::write() and
 	 * chunk::endChunk(), or call makeChunked(), which will cause all
 	 * sequential write() calls to write chunks.
 	 * 
@@ -117,7 +117,7 @@ namespace ehttp
 		 * 
 		 * @throws std::logic_error if the response has already ended
 		 */
-		std::shared_ptr<Chunk> chunk();
+		std::shared_ptr<Chunk> beginChunk();
 		
 		/**
 		 * Is the current response chunked?
@@ -195,7 +195,7 @@ namespace ehttp
 	public:
 		/**
 		 * Constructor, typically not called directly.
-		 * Instead, you should use HTTPResponse::chunk() to create chunks.
+		 * Instead, you should use HTTPResponse::beginChunk() to create chunks.
 		 * This is exposed mainly for unit testing purposes.
 		 * @param res The response the chunk is part of
 		 */
@@ -224,7 +224,7 @@ namespace ehttp
 		 * 
 		 *     res->begin()
 		 *         ->header("Content-Type", "text/plain")
-		 *         ->chunk()
+		 *         ->beginChunk()
 		 *             ->write("Lorem ipsum dolor sit amet")
 		 *             //Forgot to do ->endChunk()!
 		 *         ->end()

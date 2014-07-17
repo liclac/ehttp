@@ -147,7 +147,7 @@ std::shared_ptr<HTTPResponse> HTTPResponse::write(const std::vector<char> &data)
 	if(!p->chunked)
 		 body.insert(body.end(), data.begin(), data.end());
 	else
-		this->chunk()
+		this->beginChunk()
 			->write(data)
 			->endChunk();
 	
@@ -206,7 +206,7 @@ std::shared_ptr<HTTPResponse> HTTPResponse::makeChunked()
 	
 	if(body.size() > 0)
 	{
-		std::shared_ptr<Chunk> chk = this->chunk();
+		std::shared_ptr<Chunk> chk = this->beginChunk();
 		chk->write(body);
 		body.clear();
 		chk->endChunk();
@@ -215,7 +215,7 @@ std::shared_ptr<HTTPResponse> HTTPResponse::makeChunked()
 	return shared_from_this();
 }
 
-std::shared_ptr<HTTPResponse::Chunk> HTTPResponse::chunk()
+std::shared_ptr<HTTPResponse::Chunk> HTTPResponse::beginChunk()
 {
 	// This will be documented if it ever becomes possible to make it happen
 	if(p->head_sent && !p->chunked)
