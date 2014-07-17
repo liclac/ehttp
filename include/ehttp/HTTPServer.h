@@ -1,5 +1,5 @@
-#ifndef EHTTP_APPSERVER_H
-#define EHTTP_APPSERVER_H
+#ifndef EHTTP_HTTPSERVER_H
+#define EHTTP_HTTPSERVER_H
 
 #include <functional>
 #include "TCPServer.h"
@@ -22,7 +22,7 @@ namespace ehttp
 	 * This also serves as an example of a custom server implementation, and as
 	 * such it's more extensively documented than the rest of the library.
 	 */
-	class AppServer : public TCPServer
+	class HTTPServer : public TCPServer
 	{
 	public:
 		using TCPServer::TCPServer;
