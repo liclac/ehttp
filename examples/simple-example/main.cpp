@@ -1,26 +1,26 @@
 #include <string>
 #include <iostream>
-#include <ehttp/server.h>
-#include <ehttp/parser.h>
-#include <ehttp/request.h>
-#include <ehttp/response.h>
+#include <ehttp/HTTPServer.h>
+#include <ehttp/HTTPParser.h>
+#include <ehttp/HTTPRequest.h>
+#include <ehttp/HTTPResponse.h>
 
 using namespace ehttp;
 
 int main(int argc, const char **argv)
 {
 	// Make a server, and a map of parsers corresponding to them
-	server srv;
-	std::map<std::shared_ptr<server::connection>, std::shared_ptr<parser>> parsers;
+	HTTPServer srv;
+	std::map<std::shared_ptr<HTTPServer::Connection>, std::shared_ptr<HTTPParser>> parsers;
 	
 	
 	
 	// Create and destroy parsers in the connection and disconnection handlers
-	srv.on_connected = [&](std::shared_ptr<server::connection> connection) {
+	srv.onConnected = [&](std::shared_ptr<HTTPServer::Connection> connection) {
 		std::cout << "> Connected!" << std::endl;
-		parsers[connection] = std::make_shared<parser>();
+		parsers[connection] = std::make_shared<HTTPParser>();
 	};
-	srv.on_disconnected = [&](std::shared_ptr<server::connection> connection) {
+	srv.onDisconnected = [&](std::shared_ptr<HTTPServer::Connection> connection) {
 		std::cout << "> Disconnected!" << std::endl;
 		parsers.erase(connection);
 	};
@@ -28,27 +28,27 @@ int main(int argc, const char **argv)
 	
 	
 	// Handle data received on connections
-	srv.on_data = [&](std::shared_ptr<server::connection> connection, const char *data, std::size_t size) {
+	srv.onData = [&](std::shared_ptr<HTTPServer::Connection> connection, const char *data, std::size_t size) {
 		// If you want to log the raw received data:
 		//std::cout << std::string(static_cast<char*>(data), size) << std::endl;
 		
 		// Grab the connection's parser and feed it the received data
-		std::shared_ptr<parser> parser = parsers[connection];
-		if(parser->parse_chunk(data, size) == parser::got_request)
+		std::shared_ptr<HTTPParser> parser = parsers[connection];
+		if(parser->parseChunk(data, size) == HTTPParser::GotRequest)
 		{
 			auto req = parser->req();
-			auto res = std::make_shared<response>(req);
+			auto res = std::make_shared<HTTPResponse>(req);
 			
 			std::cout << "Got a request for " << req->url << std::endl;
 			
 			// Log data being written, before just feeding it to the connection
-			res->on_data = [=](std::shared_ptr<response> res, std::vector<char> data) {
-				std::cout << "--> on_data" << std::endl;
+			res->onData = [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
+				std::cout << "--> onData" << std::endl;
 				std::cout << std::string(data.begin(), data.end()) << std::endl;
 				connection->write(data);
 			};
-			res->on_end = [=](std::shared_ptr<response> res) {
-				std::cout << "--> on_end" << std::endl;
+			res->onEnd = [=](std::shared_ptr<HTTPResponse> res) {
+				std::cout << "--> onEnd" << std::endl;
 			};
 			
 			// Begin the response; status codes other than 200 can be given as
@@ -88,7 +88,7 @@ int main(int argc, const char **argv)
 	};
 	
 	// Optionally log any technical errors that occur (network issues, etc)
-	srv.on_error = [](asio::error_code error) {
+	srv.onError = [](asio::error_code error) {
 		std::cerr << "Error: " << error.message() << std::endl;
 	};
 	

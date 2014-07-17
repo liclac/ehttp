@@ -8,7 +8,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
 
 add_subdirectory(src)
-#add_subdirectory(examples)
+add_subdirectory(examples)
 
 enable_testing()
 add_subdirectory(test)

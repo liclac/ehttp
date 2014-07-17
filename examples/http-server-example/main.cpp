@@ -1,4 +1,4 @@
-#include <ehttp/http_server.h>
+#include <ehttp/HTTPServer.h>
 #include <iostream>
 
 using namespace ehttp;
@@ -6,10 +6,10 @@ using namespace ehttp;
 int main(int argc, char **argv)
 {
 	// Create a server
-	http_server srv;
+	HTTPServer srv;
 	
 	// Register a request handler
-	srv.on_request = [=](std::shared_ptr<server::connection>, std::shared_ptr<request> req, std::shared_ptr<response> res) {
+	srv.onRequest = [=](std::shared_ptr<HTTPServer::Connection>, std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
 		res->begin()
 			->header("Content-Type", "text/plain")
 			->write("Lorem ipsum dolor sit amet")
@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 	};
 	
 	// Handle server errors (network issues, etc)
-	srv.on_error = [=](asio::error_code error) {
+	srv.onError = [=](asio::error_code error) {
 		std::cout << "Error: " << error << std::endl;
 	};
 	

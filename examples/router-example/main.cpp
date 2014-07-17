@@ -1,34 +1,33 @@
-#include <ehttp/http_server.h>
-#include <ehttp/router.h>
+#include <ehttp/HTTPServer.h>
+#include <ehttp/RequestRouter.h>
 #include <iostream>
 
 using namespace ehttp;
 
 int main(int argc, char **argv)
 {
-	// Create a server and a router
-	http_server srv;
-	srv.rtr = std::make_shared<router>();
+	HTTPServer srv;
+	srv.rtr = std::make_shared<RequestRouter>();
 	
-	srv.rtr->on("GET", "/", [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+	srv.rtr->on("GET", "/", [=](std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
 		res->begin()
 			->header("Content-Type", "text/plain")
 			->write("Lorem ipsum dolor sit amet")
 			->end();
 	});
-	srv.rtr->on("GET", "/unauthorized", [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+	srv.rtr->on("GET", "/unauthorized", [=](std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
 		res->begin(403)
 			->end();
 	});
 	
-	srv.rtr->on_error(404, [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+	srv.rtr->onError(404, [=](std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
 		res->begin(0)
 			->header("Content-Type", "text/plain")
 			->write("Not Found")
 			->end();
 	});
 	
-	srv.rtr->on_error(403, [=](std::shared_ptr<request> req, std::shared_ptr<response> res) {
+	srv.rtr->onError(403, [=](std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
 		res->begin(0)
 			->header("Content-Type", "text/plain")
 			->write("You're not authorized to access this")
@@ -36,7 +35,7 @@ int main(int argc, char **argv)
 	});
 	
 	// Handle server errors (network issues, etc)
-	srv.on_error = [=](asio::error_code error) {
+	srv.onError = [=](asio::error_code error) {
 		std::cout << "Error: " << error << std::endl;
 	};
 	
