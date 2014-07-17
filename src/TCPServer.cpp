@@ -1,5 +1,5 @@
 #include <iostream>
-#include <ehttp/HTTPServer.h>
+#include <ehttp/TCPServer.h>
 
 using namespace ehttp;
 using namespace asio;
@@ -10,7 +10,7 @@ using namespace asio::ip;
 
 
 /// \private
-struct HTTPServer::impl
+struct TCPServer::impl
 {
 	io_service service;
 	
@@ -26,7 +26,7 @@ struct HTTPServer::impl
 
 
 
-HTTPServer::HTTPServer(unsigned int workers):
+TCPServer::TCPServer(unsigned int workers):
 	p(new impl)
 {
 	p->work = new io_service::work(p->service);
@@ -35,7 +35,7 @@ HTTPServer::HTTPServer(unsigned int workers):
 		p->worker_threads.emplace_back([&]{ p->service.run(); });
 }
 
-HTTPServer::~HTTPServer()
+TCPServer::~TCPServer()
 {
 	delete p->work;
 	p->acceptor.close();
@@ -46,7 +46,7 @@ HTTPServer::~HTTPServer()
 	delete p;
 }
 
-asio::error_code HTTPServer::listen(const tcp::endpoint &endpoint)
+asio::error_code TCPServer::listen(const tcp::endpoint &endpoint)
 {
 	asio::error_code error;
 	
@@ -63,34 +63,34 @@ asio::error_code HTTPServer::listen(const tcp::endpoint &endpoint)
 	return error;
 }
 
-asio::error_code HTTPServer::listen(const std::string &address, const uint16_t &port)
+asio::error_code TCPServer::listen(const std::string &address, const uint16_t &port)
 {
 	return this->listen(tcp::endpoint(address::from_string(address), port));
 }
 
-asio::error_code HTTPServer::listen(const uint16_t &port)
+asio::error_code TCPServer::listen(const uint16_t &port)
 {
 	return this->listen(tcp::endpoint(tcp::v4(), port));
 }
 
-void HTTPServer::run()
+void TCPServer::run()
 {
 	p->service.run();
 }
 
-void HTTPServer::stop()
+void TCPServer::stop()
 {
 	p->service.stop();
 }
 
-void HTTPServer::poll()
+void TCPServer::poll()
 {
 	p->service.poll();
 }
 
-void HTTPServer::accept()
+void TCPServer::accept()
 {
-	std::shared_ptr<HTTPServer::Connection> connection = std::make_shared<HTTPServer::Connection>(this, p->service);
+	std::shared_ptr<TCPServer::Connection> connection = std::make_shared<TCPServer::Connection>(this, p->service);
 	
 	p->acceptor.async_accept(connection->socket(), [=](const asio::error_code &error)
 	{
@@ -106,12 +106,12 @@ void HTTPServer::accept()
 
 
 /// \private
-struct HTTPServer::Connection::impl
+struct TCPServer::Connection::impl
 {
 	// Prevent autodeletion while in use
-	std::shared_ptr<HTTPServer::Connection> retain_self;
+	std::shared_ptr<TCPServer::Connection> retain_self;
 	
-	HTTPServer *srv;
+	TCPServer *srv;
 	
 	io_service &service;
 	tcp::socket socket;
@@ -126,28 +126,28 @@ struct HTTPServer::Connection::impl
 
 
 
-HTTPServer::Connection::Connection(HTTPServer *srv, io_service &service):
+TCPServer::Connection::Connection(TCPServer *srv, io_service &service):
 	p(new impl(service))
 {
 	p->srv = srv;
 	p->read_buffer.resize(kReadBufferSize);
 }
 
-HTTPServer::Connection::~Connection()
+TCPServer::Connection::~Connection()
 {
 	delete p;
 }
 
-tcp::socket& HTTPServer::Connection::socket() { return p->socket; }
+tcp::socket& TCPServer::Connection::socket() { return p->socket; }
 
-void HTTPServer::Connection::write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback)
+void TCPServer::Connection::write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback)
 {
 	p->write_queue.push_back(data);
 	if(p->write_queue.size() == 1)
 		this->writeNext();
 }
 
-void HTTPServer::Connection::disconnect()
+void TCPServer::Connection::disconnect()
 {
 	if(p->socket.is_open())
 	{
@@ -163,14 +163,14 @@ void HTTPServer::Connection::disconnect()
 	p->retain_self.reset();
 }
 
-void HTTPServer::Connection::connected()
+void TCPServer::Connection::connected()
 {
 	p->retain_self = shared_from_this();
 	p->srv->eventConnected(shared_from_this());
 	this->readChunk();
 }
 
-void HTTPServer::Connection::readChunk()
+void TCPServer::Connection::readChunk()
 {
 	p->socket.async_read_some(asio::buffer(p->read_buffer, kReadBufferSize),
 		[&](const asio::error_code &error, std::size_t bytes_transferred)
@@ -189,7 +189,7 @@ void HTTPServer::Connection::readChunk()
 	});
 }
 
-void HTTPServer::Connection::writeNext()
+void TCPServer::Connection::writeNext()
 {
 	std::vector<char> &data = p->write_queue[0];
 	asio::async_write(p->socket, asio::buffer(data), [=](const asio::error_code &error, std::size_t bytes_transferred) {

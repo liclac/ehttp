@@ -9,23 +9,23 @@
 
 using namespace ehttp;
 
-void AppServer::eventConnected(std::shared_ptr<HTTPServer::Connection> connection)
+void AppServer::eventConnected(std::shared_ptr<TCPServer::Connection> connection)
 {
 	// If you want to do some setup when the connection is established (such
 	// as if you used pointers for context objects), do it here.
 	
-	HTTPServer::eventConnected(connection);
+	TCPServer::eventConnected(connection);
 }
 
-void AppServer::eventDisconnected(std::shared_ptr<HTTPServer::Connection> connection)
+void AppServer::eventDisconnected(std::shared_ptr<TCPServer::Connection> connection)
 {
 	// Delete the context data for the disconnected connection
 	contexts.erase(connection);
 	
-	HTTPServer::eventDisconnected(connection);
+	TCPServer::eventDisconnected(connection);
 }
 
-void AppServer::eventData(std::shared_ptr<HTTPServer::Connection> connection, const char *data, std::size_t size)
+void AppServer::eventData(std::shared_ptr<TCPServer::Connection> connection, const char *data, std::size_t size)
 {
 	// std::map's operator[] implicitly creates an object if it doesn't exist,
 	// and then returns a reference to it. Thus, no need to do it manually!
@@ -64,12 +64,12 @@ void AppServer::eventData(std::shared_ptr<HTTPServer::Connection> connection, co
 		eventRequest(connection, req, res);
 	}
 	
-	HTTPServer::eventData(connection, data, size);
+	TCPServer::eventData(connection, data, size);
 }
 
 void AppServer::eventError(asio::error_code error)
 {
 	// If you want to handle errors
 	
-	HTTPServer::eventError(error);
+	TCPServer::eventError(error);
 }
