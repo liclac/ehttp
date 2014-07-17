@@ -52,7 +52,7 @@ namespace ehttp
 		virtual void eventData(std::shared_ptr<HTTPServer::Connection> connection, const char *data, std::size_t size) override;
 		virtual void eventError(asio::error_code error) override;
 		
-		/// Struct for keeping context data
+		/// \private Struct for keeping context data
 		struct context {
 			HTTPParser psr;		///< A parser for the connection
 		};
