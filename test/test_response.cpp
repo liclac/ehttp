@@ -3,16 +3,16 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <ehttp/eresponse.h>
+#include <ehttp/HTTPResponse.h>
 
 using namespace ehttp;
 
 TEST_CASE("Test callback counts")
 {
-	std::shared_ptr<eresponse> res = std::make_shared<eresponse>();
+	std::shared_ptr<HTTPResponse> res = std::make_shared<HTTPResponse>();
 	
 	/*
-	 * Every time on_data or on_end is called, increment a counter. If anything
+	 * Every time onData or onEnd is called, increment a counter. If anything
 	 * isn't working as expected, one of these numbers should be unexpected as
 	 * well.
 	 * 
@@ -21,31 +21,31 @@ TEST_CASE("Test callback counts")
 	 * For a non-chunked response, the data count is also always 1.
 	 * 
 	 * For a chunked response, the data count should be equal to the number of
-	 * calls to write() or end_chunk(), plus one for the header section
-	 * (written by a call to make_chunked() or before the first end_chunk()),
+	 * calls to write() or endChunk(), plus one for the header section
+	 * (written by a call to makeChunked() or before the first endChunk()),
 	 * plus one for the terminating chunk (written by end()).
 	 */
-	int on_data_count = 0;
-	res->on_data = [&](std::shared_ptr<eresponse> res, std::vector<char>) {
-		++on_data_count;
+	int onDataCount = 0;
+	res->onData = [&](std::shared_ptr<HTTPResponse> res, std::vector<char>) {
+		++onDataCount;
 	};
 	
-	int on_end_count = 0;
-	res->on_end = [&](std::shared_ptr<eresponse> res) {
-		++on_end_count;
+	int onEndCount = 0;
+	res->onEnd = [&](std::shared_ptr<HTTPResponse> res) {
+		++onEndCount;
 	};
 	
 	/*
-	 * Verifies that the on_data_count is what it's expected to be, and that
-	 * on_end_count is 1 (since if it's not, you forgot a verify_and_reset(),
+	 * Verifies that the onDataCount is what it's expected to be, and that
+	 * onEndCount is 1 (since if it's not, you forgot a verifyAndReset(),
 	 * or something isn't working properly), then reset the counters.
 	 */
-	auto verify_and_reset = [&](int expected_data_count) {
-		CHECK(on_data_count == expected_data_count);
-		REQUIRE(on_end_count == 1);
+	auto verifyAndReset = [&](int expected_data_count) {
+		CHECK(onDataCount == expected_data_count);
+		REQUIRE(onEndCount == 1);
 		
-		on_data_count = 0;
-		on_end_count = 0;
+		onDataCount = 0;
+		onEndCount = 0;
 	};
 	
 	
@@ -57,7 +57,7 @@ TEST_CASE("Test callback counts")
 			->write("Lorem ipsum dolor sit amet")
 			->end();
 		
-		verify_and_reset(1);
+		verifyAndReset(1);
 	}
 	
 	SECTION("Send a normal response in two writes")
@@ -68,42 +68,42 @@ TEST_CASE("Test callback counts")
 			->write("dolor sit amet")
 			->end();
 		
-		verify_and_reset(1);
+		verifyAndReset(1);
 	}
 	
-	SECTION("Send a response with make_chunked()")
+	SECTION("Send a response with makeChunked()")
 	{
 		res->begin()
 			->header("Content-Type", "text/plain")
-			->make_chunked()
+			->makeChunked()
 			->write("Lorem ipsum ")
 			->write("dolor sit amet")
 			->end();
 		
-		verify_and_reset(1 + 2 + 1);
+		verifyAndReset(1 + 2 + 1);
 	}
 	
-	SECTION("Send a response with begin_chunk() and write()")
+	SECTION("Send a response with beginChunk() and write()")
 	{
 		res->begin()
 			->header("Content-Type", "text/plain")
-			->begin_chunk()
+			->beginChunk()
 				->write("Lorem ")
 				->write("ipsum ")
-				->end_chunk()
-			->begin_chunk()
+				->endChunk()
+			->beginChunk()
 				->write("dolor ")
-				->end_chunk()
+				->endChunk()
 			->write("sit amet")
 			->end();
 		
-		verify_and_reset(1 + 3 + 1);
+		verifyAndReset(1 + 3 + 1);
 	}
 }
 
 TEST_CASE("Test exceptions")
 {
-	std::shared_ptr<eresponse> res = std::make_shared<eresponse>();
+	std::shared_ptr<HTTPResponse> res = std::make_shared<HTTPResponse>();
 	
 	SECTION("Attempt end() with no callbacks")
 	{
@@ -111,17 +111,17 @@ TEST_CASE("Test exceptions")
 		REQUIRE_THROWS_AS(res->end(), std::runtime_error);
 	}
 	
-	SECTION("Attempt make_chunked() with no callbacks")
+	SECTION("Attempt makeChunked() with no callbacks")
 	{
 		res->begin();
-		REQUIRE_THROWS_AS(res->make_chunked(), std::runtime_error);
+		REQUIRE_THROWS_AS(res->makeChunked(), std::runtime_error);
 		REQUIRE_THROWS_AS(res->end(), std::runtime_error);
 	}
 	
 	
 	
 	// Just set a callback that discards incoming data
-	res->on_data = [=](std::shared_ptr<eresponse>, std::vector<char>) {};
+	res->onData = [=](std::shared_ptr<HTTPResponse>, std::vector<char>) {};
 	
 	
 	
@@ -135,23 +135,23 @@ TEST_CASE("Test exceptions")
 	SECTION("Attempt to make an ended response chunked")
 	{
 		res->begin()->end();
-		REQUIRE_THROWS_AS(res->make_chunked(), std::logic_error);
+		REQUIRE_THROWS_AS(res->makeChunked(), std::logic_error);
 	}
 	
 	SECTION("Attempt to make chunks on an ended response")
 	{
 		res->begin()->end();
 		
-		REQUIRE_THROWS_AS(res->begin_chunk(), std::logic_error);
+		REQUIRE_THROWS_AS(res->beginChunk(), std::logic_error);
 	}
 	
 	SECTION("Attempt to write a chunk to an ended response")
 	{
 		res->begin();
-		auto chk = res->begin_chunk();
+		auto chk = res->beginChunk();
 		res->end();
 		
 		chk->write("Lorem ipsum dolor sit amet");
-		REQUIRE_THROWS_AS(chk->end_chunk(), std::logic_error);
+		REQUIRE_THROWS_AS(chk->endChunk(), std::logic_error);
 	}
 }
