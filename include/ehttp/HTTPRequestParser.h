@@ -1,5 +1,5 @@
-#ifndef EHTTP_HTTPPARSER_H
-#define EHTTP_HTTPPARSER_H
+#ifndef EHTTP_HTTPREQUESTPARSER_H
+#define EHTTP_HTTPREQUESTPARSER_H
 
 #include <functional>
 #include <memory>
@@ -13,11 +13,11 @@ namespace ehttp
 	 * You should keep an instance of this class per connection, and feed it
 	 * any data you receive.
 	 */
-	class HTTPParser
+	class HTTPRequestParser
 	{
 	public:
-		HTTPParser();
-		virtual ~HTTPParser();
+		HTTPRequestParser();
+		virtual ~HTTPRequestParser();
 		
 		/// The return value of parseChunk().
 		enum Status {
@@ -38,7 +38,7 @@ namespace ehttp
 		 * 
 		 * @see request()
 		 */
-		HTTPParser::Status parseChunk(const char *data, std::size_t length);
+		HTTPRequestParser::Status parseChunk(const char *data, std::size_t length);
 		
 		/**
 		 * Retreive the parsed request.

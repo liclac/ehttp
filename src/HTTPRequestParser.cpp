@@ -1,6 +1,6 @@
 #include <string>
 #include <stdexcept>
-#include <ehttp/HTTPParser.h>
+#include <ehttp/HTTPRequestParser.h>
 #include <ehttp/HTTPRequest.h>
 #include "../vendor/http-parser/http_parser.h"
 
@@ -30,7 +30,7 @@ static const http_parser_settings ehttp_parser_parser_settings = {
 namespace ehttp
 {
 	/// \private
-	struct HTTPParser_parser_ctx
+	struct HTTPRequestParser_parser_ctx
 	{
 		std::shared_ptr<HTTPRequest> req;
 		bool done;
@@ -38,7 +38,7 @@ namespace ehttp
 		std::string tmp_header_field, tmp_header_value;
 		bool was_reading_header_value;
 		
-		HTTPParser *psr;
+		HTTPRequestParser *psr;
 	};
 }
 
@@ -47,34 +47,34 @@ void ehttp_parser_push_header(http_parser *psr);
 
 
 /// \private
-struct HTTPParser::impl
+struct HTTPRequestParser::impl
 {
 	http_parser *psr;
 };
 
-HTTPParser::HTTPParser():
+HTTPRequestParser::HTTPRequestParser():
 	p(new impl)
 {
 	p->psr = new http_parser;
 	http_parser_init(p->psr, HTTP_REQUEST);
 	
-	HTTPParser_parser_ctx *ctx = new HTTPParser_parser_ctx;
+	HTTPRequestParser_parser_ctx *ctx = new HTTPRequestParser_parser_ctx;
 	ctx->done = false;
 	ctx->was_reading_header_value = false;
 	ctx->psr = this;
 	p->psr->data = ctx;
 }
 
-HTTPParser::~HTTPParser()
+HTTPRequestParser::~HTTPRequestParser()
 {
-	delete static_cast<HTTPParser_parser_ctx*>(p->psr->data);
+	delete static_cast<HTTPRequestParser_parser_ctx*>(p->psr->data);
 	delete p->psr;
 	delete p;
 }
 
-HTTPParser::Status HTTPParser::parseChunk(const char *data, std::size_t length)
+HTTPRequestParser::Status HTTPRequestParser::parseChunk(const char *data, std::size_t length)
 {
-	HTTPParser_parser_ctx *ctx = static_cast<HTTPParser_parser_ctx*>(p->psr->data);
+	HTTPRequestParser_parser_ctx *ctx = static_cast<HTTPRequestParser_parser_ctx*>(p->psr->data);
 	
 	if(ctx->done)
 	{
@@ -94,9 +94,9 @@ HTTPParser::Status HTTPParser::parseChunk(const char *data, std::size_t length)
 	return (ctx->done ? GotRequest : KeepGoing);
 }
 
-std::shared_ptr<HTTPRequest> HTTPParser::req()
+std::shared_ptr<HTTPRequest> HTTPRequestParser::req()
 {
-	HTTPParser_parser_ctx *ctx = static_cast<HTTPParser_parser_ctx*>(p->psr->data);
+	HTTPRequestParser_parser_ctx *ctx = static_cast<HTTPRequestParser_parser_ctx*>(p->psr->data);
 	return ctx->req;
 }
 
@@ -104,21 +104,21 @@ std::shared_ptr<HTTPRequest> HTTPParser::req()
 
 int ehttp_parser_on_message_begin(http_parser *psr)
 {
-	HTTPParser_parser_ctx *ctx = static_cast<HTTPParser_parser_ctx*>(psr->data);
+	HTTPRequestParser_parser_ctx *ctx = static_cast<HTTPRequestParser_parser_ctx*>(psr->data);
 	ctx->req = std::make_shared<HTTPRequest>();
 	return 0;
 }
 
 int ehttp_parser_on_url(http_parser *psr, const char *data, size_t length)
 {
-	HTTPParser_parser_ctx *ctx = static_cast<HTTPParser_parser_ctx*>(psr->data);
+	HTTPRequestParser_parser_ctx *ctx = static_cast<HTTPRequestParser_parser_ctx*>(psr->data);
 	ctx->req->url += std::string(data, length);
 	return 0;
 }
 
 int ehttp_parser_on_header_field(http_parser *psr, const char *data, size_t length)
 {
-	HTTPParser_parser_ctx *ctx = static_cast<HTTPParser_parser_ctx*>(psr->data);
+	HTTPRequestParser_parser_ctx *ctx = static_cast<HTTPRequestParser_parser_ctx*>(psr->data);
 	if(ctx->was_reading_header_value) ehttp_parser_push_header(psr);
 	ctx->tmp_header_field += std::string(data, length);
 	return 0;
@@ -126,7 +126,7 @@ int ehttp_parser_on_header_field(http_parser *psr, const char *data, size_t leng
 
 int ehttp_parser_on_header_value(http_parser *psr, const char *data, size_t length)
 {
-	HTTPParser_parser_ctx *ctx = static_cast<HTTPParser_parser_ctx*>(psr->data);
+	HTTPRequestParser_parser_ctx *ctx = static_cast<HTTPRequestParser_parser_ctx*>(psr->data);
 	ctx->was_reading_header_value = true;
 	ctx->tmp_header_value += std::string(data, length);
 	return 0;
@@ -134,14 +134,14 @@ int ehttp_parser_on_header_value(http_parser *psr, const char *data, size_t leng
 
 int ehttp_parser_on_headers_complete(http_parser *psr)
 {
-	//HTTPParser_parser_ctx *ctx = static_cast<HTTPParser_parser_ctx*>(psr->data);
+	//HTTPRequestParser_parser_ctx *ctx = static_cast<HTTPRequestParser_parser_ctx*>(psr->data);
 	ehttp_parser_push_header(psr);
 	return 0;
 }
 
 int ehttp_parser_on_body(http_parser *psr, const char *data, size_t length)
 {
-	HTTPParser_parser_ctx *ctx = static_cast<HTTPParser_parser_ctx*>(psr->data);
+	HTTPRequestParser_parser_ctx *ctx = static_cast<HTTPRequestParser_parser_ctx*>(psr->data);
 	ctx->req->body.reserve(ctx->req->body.size() + length);
 	ctx->req->body.insert(ctx->req->body.end(), data, data + length);
 	return 0;
@@ -149,7 +149,7 @@ int ehttp_parser_on_body(http_parser *psr, const char *data, size_t length)
 
 int ehttp_parser_on_message_complete(http_parser *psr)
 {
-	HTTPParser_parser_ctx *ctx = static_cast<HTTPParser_parser_ctx*>(psr->data);
+	HTTPRequestParser_parser_ctx *ctx = static_cast<HTTPRequestParser_parser_ctx*>(psr->data);
 	ctx->req->method = http_method_str(static_cast<http_method>(psr->method));
 	ctx->done = true;
 	return 0;
@@ -159,7 +159,7 @@ int ehttp_parser_on_message_complete(http_parser *psr)
 
 void ehttp_parser_push_header(http_parser *psr)
 {
-	HTTPParser_parser_ctx *ctx = static_cast<HTTPParser_parser_ctx*>(psr->data);
+	HTTPRequestParser_parser_ctx *ctx = static_cast<HTTPRequestParser_parser_ctx*>(psr->data);
 	ctx->req->headers.insert(std::make_pair(ctx->tmp_header_field, ctx->tmp_header_value));
 	ctx->tmp_header_field.clear();
 	ctx->tmp_header_value.clear();

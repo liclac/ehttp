@@ -32,7 +32,7 @@ void HTTPServer::eventData(std::shared_ptr<TCPServer::Connection> connection, co
 	context &ctx = contexts[connection];
 	
 	// Parse until we get a request; note: we need one parser per connection!
-	if(ctx.psr.parseChunk(data, size) == HTTPParser::GotRequest)
+	if(ctx.psr.parseChunk(data, size) == HTTPRequestParser::GotRequest)
 	{
 		std::shared_ptr<HTTPRequest> req = ctx.psr.req();
 		std::shared_ptr<HTTPResponse> res = std::make_shared<HTTPResponse>(req);

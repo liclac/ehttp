@@ -3,7 +3,7 @@
 
 #include <functional>
 #include "TCPServer.h"
-#include "HTTPParser.h"
+#include "HTTPRequestParser.h"
 #include "HTTPRequest.h"
 #include "HTTPResponse.h"
 #include "RequestRouter.h"
@@ -11,7 +11,7 @@
 namespace ehttp
 {
 	/**
-	 * A convenience class that combines \ref TCPServer and \ref HTTPParser.
+	 * A convenience class that combines TCPServer and HTTPRequestParser.
 	 * 
 	 * If your application does not already have an HTTP or TCP server set up,
 	 * or simply does not have any special needs that would necessitate a
@@ -54,7 +54,7 @@ namespace ehttp
 		
 		/// \private Struct for keeping context data
 		struct context {
-			HTTPParser psr;		///< A parser for the connection
+			HTTPRequestParser psr;		///< A parser for the connection
 		};
 		/// Map between connections and contexts
 		std::map<std::shared_ptr<TCPServer::Connection>, context> contexts;

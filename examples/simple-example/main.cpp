@@ -1,7 +1,7 @@
 #include <string>
 #include <iostream>
 #include <ehttp/HTTPServer.h>
-#include <ehttp/HTTPParser.h>
+#include <ehttp/HTTPRequestParser.h>
 #include <ehttp/HTTPRequest.h>
 #include <ehttp/HTTPResponse.h>
 
@@ -11,14 +11,14 @@ int main(int argc, const char **argv)
 {
 	// Make a server, and a map of parsers corresponding to them
 	HTTPServer srv;
-	std::map<std::shared_ptr<HTTPServer::Connection>, std::shared_ptr<HTTPParser>> parsers;
+	std::map<std::shared_ptr<HTTPServer::Connection>, std::shared_ptr<HTTPRequestParser>> parsers;
 	
 	
 	
 	// Create and destroy parsers in the connection and disconnection handlers
 	srv.onConnected = [&](std::shared_ptr<HTTPServer::Connection> connection) {
 		std::cout << "> Connected!" << std::endl;
-		parsers[connection] = std::make_shared<HTTPParser>();
+		parsers[connection] = std::make_shared<HTTPRequestParser>();
 	};
 	srv.onDisconnected = [&](std::shared_ptr<HTTPServer::Connection> connection) {
 		std::cout << "> Disconnected!" << std::endl;
@@ -33,8 +33,8 @@ int main(int argc, const char **argv)
 		//std::cout << std::string(static_cast<char*>(data), size) << std::endl;
 		
 		// Grab the connection's parser and feed it the received data
-		std::shared_ptr<HTTPParser> parser = parsers[connection];
-		if(parser->parseChunk(data, size) == HTTPParser::GotRequest)
+		std::shared_ptr<HTTPRequestParser> parser = parsers[connection];
+		if(parser->parseChunk(data, size) == HTTPRequestParser::GotRequest)
 		{
 			auto req = parser->req();
 			auto res = std::make_shared<HTTPResponse>(req);
