@@ -54,7 +54,7 @@ namespace ehttp
 		
 		/// \private Struct for keeping context data
 		struct context {
-			HTTPRequestParser psr;		///< A parser for the connection
+			HTTPRequestParser parser;	///< A parser for the connection
 		};
 		/// Map between connections and contexts
 		std::map<std::shared_ptr<TCPServer::Connection>, context> contexts;
