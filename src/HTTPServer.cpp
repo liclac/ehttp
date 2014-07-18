@@ -58,7 +58,7 @@ void HTTPServer::eventData(std::shared_ptr<TCPServer::Connection> connection, co
 		*/
 		
 		// Let the router attempt to handle it first, if it exists
-		if(rtr) rtr->route(req, res);
+		if(router) router->route(req, res);
 		
 		// Then fire the request event afterwards
 		eventRequest(connection, req, res);

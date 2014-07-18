@@ -1,6 +1,6 @@
 #include <map>
 #include <set>
-#include <ehttp/RequestRouter.h>
+#include <ehttp/HTTPRouter.h>
 #include <ehttp/URL.h>
 #include <ehttp/util.h>
 #include <iostream>
@@ -8,7 +8,7 @@
 using namespace ehttp;
 
 /// \private
-struct RequestRouter::impl
+struct HTTPRouter::impl
 {
 	/// \private Tree structure for routes
 	struct route_node
@@ -27,19 +27,19 @@ struct RequestRouter::impl
 	std::map<std::shared_ptr<HTTPResponse>,std::vector<char>> buffers;
 };
 
-RequestRouter::RequestRouter():
+HTTPRouter::HTTPRouter():
 	fallback_code(404),
 	p(new impl)
 {
 	
 }
 
-RequestRouter::~RequestRouter()
+HTTPRouter::~HTTPRouter()
 {
 	
 }
 
-void RequestRouter::on(std::string method, std::string path, handler_func handler)
+void HTTPRouter::on(std::string method, std::string path, handler_func handler)
 {
 	std::vector<std::string> components = util::split(path, '/');
 	impl::route_node &root = p->methods[method];
@@ -51,16 +51,16 @@ void RequestRouter::on(std::string method, std::string path, handler_func handle
 	node->handler = handler;
 }
 
-void RequestRouter::onError(uint16_t code, handler_func handler)
+void HTTPRouter::onError(uint16_t code, handler_func handler)
 {
 	p->status_handlers[code] = handler;
 }
 
-void RequestRouter::route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)
+void HTTPRouter::route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)
 {
 	// Throw exceptions for responses without required handlers
 	if(!res->onData)
-		throw std::runtime_error("RequestRouter::route() response lacks onData");
+		throw std::runtime_error("HTTPRouter::route() response lacks onData");
 	
 	// Set callbacks that call status handlers where appropriate
 	auto old_onData = res->onData;
@@ -117,7 +117,7 @@ void RequestRouter::route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTP
 	}
 }
 
-void RequestRouter::wrapResponseHandlers(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)
+void HTTPRouter::wrapResponseHandlers(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)
 {
 	auto old_onData = res->onData;
 	auto old_onEnd = res->onEnd;

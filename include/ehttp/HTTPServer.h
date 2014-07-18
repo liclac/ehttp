@@ -6,7 +6,7 @@
 #include "HTTPRequestParser.h"
 #include "HTTPRequest.h"
 #include "HTTPResponse.h"
-#include "RequestRouter.h"
+#include "HTTPRouter.h"
 
 namespace ehttp
 {
@@ -30,7 +30,7 @@ namespace ehttp
 		/**
 		 * Optional router for handling requests.
 		 */
-		std::shared_ptr<RequestRouter> rtr;
+		std::shared_ptr<HTTPRouter> router;
 		
 		/**
 		 * Callback for when a new request is received.

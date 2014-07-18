@@ -20,12 +20,12 @@ namespace ehttp
 	 * @todo A `mountpoint` class that can be mounted onto arbitrary points in
 	 * the tree, handling any request to antyhing under it.
 	 */
-	class RequestRouter
+	class HTTPRouter
 	{
 	public:
 		/// Constructor
-		RequestRouter();
-		virtual ~RequestRouter();
+		HTTPRouter();
+		virtual ~HTTPRouter();
 		
 		/// Signature for a handler function
 		typedef std::function<void(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)> handler_func;
