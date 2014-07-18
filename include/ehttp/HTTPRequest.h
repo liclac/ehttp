@@ -1,5 +1,5 @@
-#ifndef EHTTP_REQUEST_H
-#define EHTTP_REQUEST_H
+#ifndef EHTTP_HTTPREQUEST_H
+#define EHTTP_HTTPREQUEST_H
 
 #include <string>
 #include <map>

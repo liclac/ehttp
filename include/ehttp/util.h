@@ -1,5 +1,5 @@
-#ifndef EHTTP_UTIL
-#define EHTTP_UTIL
+#ifndef EHTTP_UTIL_H
+#define EHTTP_UTIL_H
 
 #include <functional>
 #include <locale>

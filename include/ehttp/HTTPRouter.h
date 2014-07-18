@@ -1,5 +1,5 @@
-#ifndef EHTTP_ROUTER_H
-#define EHTTP_ROUTER_H
+#ifndef EHTTP_HTTPROUTER_H
+#define EHTTP_HTTPROUTER_H
 
 #include <cstdint>
 #include <memory>

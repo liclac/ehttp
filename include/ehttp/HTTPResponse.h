@@ -1,5 +1,5 @@
-#ifndef EHTTP_RESPONSE_H
-#define EHTTP_RESPONSE_H
+#ifndef EHTTP_HTTPRESPONSE_H
+#define EHTTP_HTTPRESPONSE_H
 
 #include <cstdint>
 #include <functional>
