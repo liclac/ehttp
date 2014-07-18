@@ -27,16 +27,16 @@ namespace ehttp
 	 *         ->write("Lorem ipsum dolor sit amet")
 	 *         ->end()
 	 * 
-	 * To make a chunked response, either use beginChunk(), chunk::write() and
-	 * chunk::endChunk(), or call makeChunked(), which will cause all
+	 * To make a chunked response, either use beginChunk(), Chunk::write() and
+	 * Chunk::endChunk(), or call makeChunked(), which will cause all
 	 * sequential write() calls to write chunks.
 	 * 
 	 * You don't have to care whether a response is chunked or not at any given
-	 * time:\n
-	 * Non-chunked calls will automatically write chunks if the response is
-	 * chunked, otherwise add to a buffer.\n
-	 * Chunked calls will make the response chunked if it's not, immediately
-	 * writing a chunk consisting of any data written using non-chunked calls.
+	 * time:
+	 * - Non-chunked calls will automatically write chunks if the response is
+	 *   chunked, otherwise add to a buffer.
+	 * - Chunked calls will make the response chunked if it's not, immediately
+	 *   writing a chunk consisting of any data written using non-chunked calls.
 	 */
 	class HTTPResponse : public std::enable_shared_from_this<HTTPResponse>
 	{
@@ -94,7 +94,7 @@ namespace ehttp
 		/**
 		 * Makes the response chunked.
 		 * 
-		 * This is automatically called from chunk::endChunk(), and sets a
+		 * This is automatically called from Chunk::endChunk(), and sets a
 		 * flag that will make any subsequent calls to write() send chunks
 		 * rather than append to the #body buffer.
 		 * 
@@ -107,11 +107,11 @@ namespace ehttp
 		/**
 		 * Begins a chunk.
 		 * 
-		 * Use chunk::endChunk() to end it and write it out.
+		 * Use Chunk::endChunk() to end it and write it out.
 		 * 
 		 * There is no reference counting for this or anything - if you realize
 		 * after you've begun a chunk that you don't actually need to send it,
-		 * just don't call chunk::endChunk() on it.\n
+		 * just don't call Chunk::endChunk() on it.\n
 		 * Chunks keep a std::shared_ptr to their parent response, which means
 		 * that the response will not be destroyed until all of its chunks are.
 		 * 

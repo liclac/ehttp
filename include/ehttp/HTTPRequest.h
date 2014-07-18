@@ -11,9 +11,9 @@ namespace ehttp
 	/**
 	 * Represents an HTTP Request.
 	 * 
-	 * Instances of this class are typically created by HTTPParser, but you
-	 * can also create them manually if you have a different means of parsing
-	 * a request, or for testing purposes.
+	 * Instances of this class are typically created by HTTPRequestParser, but
+	 * you can also create them manually if you have a different means of
+	 * parsing a request, or for testing purposes.
 	 * 
 	 * It's a dumb container, change values at will.
 	 */

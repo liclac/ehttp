@@ -23,4 +23,4 @@ Features
   The three parts operate independently of each other, and you're not forced to use any of them.  
   If you already have a perfectly fine TCP server, you can use that to feed the request parser data.  
   If you don't like the router, you can just handle requests yourself.  
-  Additionally, `http_server` provides an example of how to combine all three into a single class.
+  Additionally, `HTTPServer` provides an example of how to combine all three into a single class, as well as being a fully functional HTTP server by itself.

@@ -25,7 +25,7 @@ namespace ehttp
 			Error = -1,
 			/// No problem, but we haven't got all the data yet, keep feeding
 			KeepGoing = 0,
-			/// Success! We got a request (retreive with request())
+			/// Success! We got a request (retreive with req())
 			GotRequest = 1
 		};
 		

@@ -50,8 +50,9 @@ namespace ehttp
 		 * If an empty, non-chunked response is returned from a handler called
 		 * by route(), and a status handler is registered for the returned
 		 * status code (or #fallback_code if no handler that calls
-		 * response::begin() is found), that status handler will be called with
-		 * the same request and response as was passed to the original handler.
+		 * HTTPResponse::begin() is found), that status handler will be called
+		 * with the same request and response as was passed to the original
+		 * handler.
 		 * 
 		 * This is intended to be used to let you fire standard error pages
 		 * with something along the lines of:
@@ -85,9 +86,9 @@ namespace ehttp
 		 * Note that the wrapper handlers will in some cases set the response's
 		 * handlers several times from within themselves for performance, and
 		 * once a response has been wrapped, you should never rely on the value
-		 * of the on_data and on_end variables.
+		 * of the HTTPResponse::onData and HTTPResponse::onEnd variables.
 		 * 
-		 * @see on_error
+		 * @see onError
 		 */
 		void wrapResponseHandlers(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res);
 		
