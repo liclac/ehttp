@@ -56,14 +56,36 @@ namespace ehttp
 		{
 			// Temporarily force an english locale, otherwise the textual parts
 			// of the result would be translated to the current system language
-			auto old_locale = std::locale::global(std::locale("en_US.UTF-8"));
+			// This gets stupidly complicated because this can fail if we try
+			// to set a locale the system doesn't recognize
+			static bool can_set_locale = true;
+			static bool has_tried_to_set_locale = false;
+			std::locale old_locale;
+
+			if(can_set_locale)
+			{
+#ifndef _WIN32
+				const char *localeName = "en_US.UTF-8";
+#else
+				const char *localeName = "american";
+#endif
+				if(!has_tried_to_set_locale)
+				{
+					try { old_locale = std::locale::global(std::locale(localeName)); }
+					catch(std::exception &e) { can_set_locale = false; }
+				}
+				else old_locale = std::locale::global(std::locale(localeName));
+
+				has_tried_to_set_locale = true;
+			}
 			
 			char timestamp[128] = {0};
 			std::time_t t = std::time(nullptr);
 			if(!std::strftime(timestamp, sizeof(timestamp), "%a, %d %b %Y %H:%M:%S", std::gmtime(&t)))
 				strcpy(timestamp, "00:00:00");
 			
-			std::locale::global(old_locale);
+			if(can_set_locale)
+				std::locale::global(old_locale);
 			
 			return std::string(timestamp);
 		}
