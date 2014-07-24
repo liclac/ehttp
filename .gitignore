@@ -8,6 +8,9 @@ Makefile
 
 *.sublime-workspace
 *.swp
+*.sln
+*.vcxproj
+*.vcxproj.*
 
 /lib
 /bin
