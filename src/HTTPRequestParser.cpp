@@ -79,7 +79,7 @@ HTTPRequestParser::Status HTTPRequestParser::parseChunk(const char *data, std::s
 	if(ctx->done)
 	{
 		ctx->done = false;
-		ctx->req = 0;
+		ctx->req = nullptr;
 	}
 	
 	std::size_t nparsed = http_parser_execute(p->psr, &ehttp_parser_parser_settings, data, length);
