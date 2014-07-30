@@ -3,12 +3,13 @@
 
 #include "private/_shiv.h"
 
-#include <functional>
-#include <locale>
-#include <chrono>
-#include <cstring>
-#include <sstream>
+#include <vector>
 #include <string>
+#include <cstring>
+#include <functional>
+#include <chrono>
+#include <locale>
+#include <sstream>
 
 namespace ehttp
 {
