@@ -16,8 +16,6 @@ namespace ehttp
 	 * installs its own callbacks in responses that then call yours if
 	 * appropriate.
 	 * 
-	 * @todo Rails-style placeholders in routes.
-	 * 
 	 * @todo A `mountpoint` class that can be mounted onto arbitrary points in
 	 * the tree, handling any request to antyhing under it.
 	 */
