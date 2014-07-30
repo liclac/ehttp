@@ -1,9 +1,10 @@
 #include <string>
 #include <iostream>
 #include <ehttp/HTTPServer.h>
-#include <ehttp/HTTPRequestParser.h>
 #include <ehttp/HTTPRequest.h>
+#include <ehttp/HTTPRequestParser.h>
 #include <ehttp/HTTPResponse.h>
+#include <ehttp/HTTPResponseFactory.h>
 
 using namespace ehttp;
 
@@ -11,7 +12,22 @@ int main(int argc, const char **argv)
 {
 	// Make a server, and a map of parsers corresponding to them
 	HTTPServer srv;
+	HTTPResponseFactory<HTTPServer::Connection*> resf;
 	std::map<std::shared_ptr<HTTPServer::Connection>, std::shared_ptr<HTTPRequestParser>> parsers;
+	
+	
+	
+	resf.onDataFunc = [=](HTTPServer::Connection *connection) {
+		return [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
+			// Log data being written, before just feeding it to the connection
+			std::cout << "--> onData" << std::endl;
+			std::cout << std::string(data.begin(), data.end()) << std::endl;
+			connection->write(data);
+		};
+	};
+	resf.onEnd = [=](std::shared_ptr<HTTPResponse> res) {
+		std::cout << "--> onEnd" << std::endl;
+	};
 	
 	
 	
@@ -37,19 +53,9 @@ int main(int argc, const char **argv)
 		if(parser->parseChunk(data, size) == HTTPRequestParser::GotRequest)
 		{
 			auto req = parser->req();
-			auto res = std::make_shared<HTTPResponse>(req);
+			auto res = resf.res(req, &*connection);
 			
 			std::cout << "Got a request for " << req->url << std::endl;
-			
-			// Log data being written, before just feeding it to the connection
-			res->onData = [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
-				std::cout << "--> onData" << std::endl;
-				std::cout << std::string(data.begin(), data.end()) << std::endl;
-				connection->write(data);
-			};
-			res->onEnd = [=](std::shared_ptr<HTTPResponse> res) {
-				std::cout << "--> onEnd" << std::endl;
-			};
 			
 			// Begin the response; status codes other than 200 can be given as
 			// `begin(404)`, custom reasons as `begin(500, "Man Overboard")`.
