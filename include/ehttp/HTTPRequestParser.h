@@ -1,9 +1,10 @@
 #ifndef EHTTP_HTTPREQUESTPARSER_H
 #define EHTTP_HTTPREQUESTPARSER_H
 
+#include "HTTPRequest.h"
+
 #include <functional>
 #include <memory>
-#include "HTTPRequest.h"
 
 namespace ehttp
 {

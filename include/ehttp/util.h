@@ -1,13 +1,14 @@
 #ifndef EHTTP_UTIL_H
 #define EHTTP_UTIL_H
 
+#include "private/_shiv.h"
+
 #include <functional>
 #include <locale>
 #include <chrono>
 #include <cstring>
 #include <sstream>
 #include <string>
-#include "private/_shiv.h"
 
 namespace ehttp
 {

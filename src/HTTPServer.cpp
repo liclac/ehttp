@@ -2,7 +2,7 @@
 
 // Used by the example on_end below
 /*
-#include <ehttp/eurl.h>
+#include <ehttp/URL.h>
 #include <iostream>
 #include <ctime>
 */

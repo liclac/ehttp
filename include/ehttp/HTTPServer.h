@@ -1,12 +1,13 @@
 #ifndef EHTTP_HTTPSERVER_H
 #define EHTTP_HTTPSERVER_H
 
-#include <functional>
 #include "TCPServer.h"
 #include "HTTPRequestParser.h"
 #include "HTTPRequest.h"
 #include "HTTPResponse.h"
 #include "HTTPRouter.h"
+
+#include <functional>
 
 namespace ehttp
 {

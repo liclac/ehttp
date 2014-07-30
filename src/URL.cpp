@@ -1,8 +1,9 @@
+#include <ehttp/URL.h>
+#include "../vendor/http-parser/http_parser.h"
+
 #include <sstream>
 #include <bitset>
 #include <cstring>
-#include <ehttp/URL.h>
-#include "../vendor/http-parser/http_parser.h"
 
 using namespace ehttp;
 

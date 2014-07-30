@@ -1,14 +1,15 @@
 #ifndef EHTTP_HTTPRESPONSE_H
 #define EHTTP_HTTPRESPONSE_H
 
+#include "HTTPRequest.h"
+#include "util.h"
+
 #include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 #include <map>
-#include "HTTPRequest.h"
-#include "util.h"
 
 namespace ehttp
 {

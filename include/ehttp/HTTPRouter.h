@@ -1,10 +1,11 @@
 #ifndef EHTTP_HTTPROUTER_H
 #define EHTTP_HTTPROUTER_H
 
-#include <cstdint>
-#include <memory>
 #include "HTTPRequest.h"
 #include "HTTPResponse.h"
+
+#include <cstdint>
+#include <memory>
 
 namespace ehttp
 {

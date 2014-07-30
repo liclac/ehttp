@@ -1,10 +1,11 @@
 #ifndef EHTTP_HTTPREQUEST_H
 #define EHTTP_HTTPREQUEST_H
 
+#include "util.h"
+
 #include <string>
 #include <map>
 #include <vector>
-#include "util.h"
 
 namespace ehttp
 {
