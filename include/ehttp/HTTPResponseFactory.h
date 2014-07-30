@@ -24,10 +24,11 @@ namespace ehttp
 		 * construct HTTPResponse::onData and HTTPResponse::onEnd respectively,
 		 * falling back to #onData and #onEnd.
 		 */
-		virtual std::shared_ptr<HTTPResponse> res(std::shared_ptr<HTTPRequest> req, Args&&... args)
+		template<typename... Args2>
+		std::shared_ptr<HTTPResponse> res(std::shared_ptr<HTTPRequest> req, Args2&&... args)
 		{
-			auto _onData = (onDataFunc ? onDataFunc(std::forward<Args>(args)...) : onData);
-			auto _onEnd = (onEndFunc ? onEndFunc(std::forward<Args>(args)...) : onEnd);
+			auto _onData = (onDataFunc ? onDataFunc(std::forward<Args2>(args)...) : onData);
+			auto _onEnd = (onEndFunc ? onEndFunc(std::forward<Args2>(args)...) : onEnd);
 			return std::make_shared<HTTPResponse>(req, _onData, _onEnd);
 		}
 		
@@ -39,9 +40,9 @@ namespace ehttp
 		std::function<void(std::shared_ptr<HTTPResponse> res)> onEnd;
 		
 		/// Function that constructs HTTPResponse::onData
-		std::function<std::function<void(std::shared_ptr<HTTPResponse> res, std::vector<char> data)>(Args&&...)> onDataFunc;
+		std::function<std::function<void(std::shared_ptr<HTTPResponse> res, std::vector<char> data)>(Args...)> onDataFunc;
 		/// Function that constructs HTTPResponse::onEnd
-		std::function<std::function<void(std::shared_ptr<HTTPResponse> res)>(Args&&...)> onEndFunc;
+		std::function<std::function<void(std::shared_ptr<HTTPResponse> res)>(Args...)> onEndFunc;
 	};
 }
 

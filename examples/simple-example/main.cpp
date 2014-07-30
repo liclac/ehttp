@@ -12,12 +12,12 @@ int main(int argc, const char **argv)
 {
 	// Make a server, and a map of parsers corresponding to them
 	HTTPServer srv;
-	HTTPResponseFactory<HTTPServer::Connection*> resf;
+	HTTPResponseFactory<std::shared_ptr<HTTPServer::Connection>> resf;
 	std::map<std::shared_ptr<HTTPServer::Connection>, std::shared_ptr<HTTPRequestParser>> parsers;
 	
 	
 	
-	resf.onDataFunc = [=](HTTPServer::Connection *connection) {
+	resf.onDataFunc = [=](std::shared_ptr<HTTPServer::Connection> connection) {
 		return [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
 			// Log data being written, before just feeding it to the connection
 			std::cout << "--> onData" << std::endl;
@@ -53,7 +53,7 @@ int main(int argc, const char **argv)
 		if(parser->parseChunk(data, size) == HTTPRequestParser::GotRequest)
 		{
 			auto req = parser->req();
-			auto res = resf.res(req, &*connection);
+			auto res = resf.res(req, connection);
 			
 			std::cout << "Got a request for " << req->url << std::endl;
 			
