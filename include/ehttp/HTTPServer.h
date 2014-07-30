@@ -48,9 +48,13 @@ namespace ehttp
 			if(onRequest) onRequest(connection, req, res);
 		}
 		
+		/// Overridable emitter for #onConnected
 		virtual void eventConnected(std::shared_ptr<HTTPServer::Connection> connection) override;
+		/// Overridable (overridden) emitter for #onConnected
 		virtual void eventDisconnected(std::shared_ptr<HTTPServer::Connection> connection) override;
+		/// Overridable (overridden) emitter for #onConnected
 		virtual void eventData(std::shared_ptr<HTTPServer::Connection> connection, const char *data, std::size_t size) override;
+		/// Overridable (overridden) emitter for #onConnected
 		virtual void eventError(asio::error_code error) override;
 		
 		/// \private Struct for keeping context data
