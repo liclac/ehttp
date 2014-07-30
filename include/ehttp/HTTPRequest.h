@@ -40,6 +40,9 @@ namespace ehttp
 		
 		/// Is the request an Upgrade request (eg. for WebSockets)?
 		bool upgrade;
+		
+		/// The values of any eventual route placeholders
+		std::map<std::string,std::string> args;
 	};
 }
 

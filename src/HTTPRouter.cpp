@@ -15,6 +15,7 @@ struct HTTPRouter::impl
 	struct route_node
 	{
 		handler_func handler;
+		std::string argName;
 		std::map<std::string,route_node> children;
 	};
 	
@@ -47,7 +48,18 @@ void HTTPRouter::on(std::string method, std::string path, handler_func handler)
 	
 	impl::route_node *node = &root;
 	for(auto component : components)
-		node = &node->children[component];
+	{
+		if(component.empty())
+			continue;
+		
+		if(component[0] == ':')
+		{
+			node = &node->children["*"];
+			node->argName = component;
+		}
+		else 
+			node = &node->children[component];
+	}
 	
 	node->handler = handler;
 }
@@ -88,10 +100,20 @@ void HTTPRouter::route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPRes
 			auto it = node->children.find(component);
 			if(it == node->children.end())
 			{
-				node = nullptr;
-				break;
+				it = node->children.find("*");
+				if(it != node->children.end())
+				{
+					req->args.insert(std::pair<std::string,std::string>(it->second.argName, component));
+					node = &it->second;
+				}
+				else
+				{
+					node = nullptr;
+					break;
+				}
 			}
-			node = &it->second;
+			else
+				node = &it->second;
 		}
 	}
 	
