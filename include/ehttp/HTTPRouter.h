@@ -15,9 +15,6 @@ namespace ehttp
 	 * Note that the response callbacks are not called directly; the router
 	 * installs its own callbacks in responses that then call yours if
 	 * appropriate.
-	 * 
-	 * @todo A `mountpoint` class that can be mounted onto arbitrary points in
-	 * the tree, handling any request to antyhing under it.
 	 */
 	class HTTPRouter
 	{
