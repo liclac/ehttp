@@ -8,8 +8,9 @@
 #include <cstring>
 #include <functional>
 #include <chrono>
-#include <locale>
+#include <ctime>
 #include <sstream>
+#include <iomanip>
 
 namespace ehttp
 {
@@ -56,40 +57,22 @@ namespace ehttp
 		 */
 		inline std::string http_date()
 		{
-			// Temporarily force an english locale, otherwise the textual parts
-			// of the result would be translated to the current system language
-			// This gets stupidly complicated because this can fail if we try
-			// to set a locale the system doesn't recognize
-			static bool can_set_locale = true;
-			static bool has_tried_to_set_locale = false;
-			std::locale old_locale;
-
-			if(can_set_locale)
-			{
-#ifndef _WIN32
-				const char *localeName = "en_US.UTF-8";
-#else
-				const char *localeName = "american";
-#endif
-				if(!has_tried_to_set_locale)
-				{
-					try { old_locale = std::locale::global(std::locale(localeName)); }
-					catch(std::exception &e) { can_set_locale = false; }
-				}
-				else old_locale = std::locale::global(std::locale(localeName));
-
-				has_tried_to_set_locale = true;
-			}
+			const char *days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Wed" };
+			const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", "Dec" };
 			
-			char timestamp[128] = {0};
 			std::time_t t = std::time(nullptr);
-			if(!std::strftime(timestamp, sizeof(timestamp), "%a, %d %b %Y %H:%M:%S", std::gmtime(&t)))
-				strcpy(timestamp, "00:00:00");
+			std::tm *now = std::gmtime(&t);
 			
-			if(can_set_locale)
-				std::locale::global(old_locale);
+			std::stringstream ss;
+			ss.fill('0');
+			ss << days[now->tm_wday] << ", "
+				<< now->tm_mday << " " << months[now->tm_mon] << " " << 
+					1900 + now->tm_year << " "
+				<< std::setw(2) << now->tm_hour << ":" <<
+					std::setw(2) << now->tm_min << ":" <<
+					std::setw(2) << now->tm_sec << " GMT";
 			
-			return std::string(timestamp);
+			return ss.str();
 		}
 		
 		/**
