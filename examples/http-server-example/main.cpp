@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 	HTTPServer srv;
 	
 	// Register a request handler
-	srv.onRequest = [=](std::shared_ptr<HTTPServer::Connection>, std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
+	srv.onRequest = [=](std::shared_ptr<TCPConnection>, std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
 		res->begin()
 			->header("Content-Type", "text/plain")
 			->write("Lorem ipsum dolor sit amet")

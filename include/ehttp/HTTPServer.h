@@ -40,20 +40,20 @@ namespace ehttp
 		 * @param req The received request
 		 * @param res A response object that writes back to the connection
 		 */
-		std::function<void(std::shared_ptr<HTTPServer::Connection> connection, std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)> onRequest;
+		std::function<void(std::shared_ptr<TCPConnection> connection, std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res)> onRequest;
 		
 	protected:
 		/// Overridable emitter for #onRequest
-		virtual void eventRequest(std::shared_ptr<HTTPServer::Connection> connection, std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
+		virtual void eventRequest(std::shared_ptr<TCPConnection> connection, std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
 			if(onRequest) onRequest(connection, req, res);
 		}
 		
 		/// Overridable emitter for #onConnected
-		virtual void eventConnected(std::shared_ptr<HTTPServer::Connection> connection) override;
+		virtual void eventConnected(std::shared_ptr<TCPConnection> connection) override;
 		/// Overridable (overridden) emitter for #onConnected
-		virtual void eventDisconnected(std::shared_ptr<HTTPServer::Connection> connection) override;
+		virtual void eventDisconnected(std::shared_ptr<TCPConnection> connection) override;
 		/// Overridable (overridden) emitter for #onConnected
-		virtual void eventData(std::shared_ptr<HTTPServer::Connection> connection, const char *data, std::size_t size) override;
+		virtual void eventData(std::shared_ptr<TCPConnection> connection, const char *data, std::size_t size) override;
 		/// Overridable (overridden) emitter for #onConnected
 		virtual void eventError(asio::error_code error) override;
 		
@@ -62,7 +62,7 @@ namespace ehttp
 			HTTPRequestParser parser;	///< A parser for the connection
 		};
 		/// Map between connections and contexts
-		std::map<std::shared_ptr<HTTPServer::Connection>, context> contexts;
+		std::map<std::shared_ptr<TCPConnection>, context> contexts;
 	};
 }
 

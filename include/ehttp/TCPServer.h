@@ -1,6 +1,7 @@
 #ifndef EHTTP_TCPSERVER_H
 #define EHTTP_TCPSERVER_H
 
+#include "TCPConnection.h"
 #include <asio.hpp>
 
 #include <cstdint>
@@ -25,8 +26,6 @@ namespace ehttp
 	class TCPServer
 	{
 	public:
-		class Connection;
-		
 		/**
 		 * Constructor.
 		 * @param workers The number of worker threads to create
@@ -104,7 +103,7 @@ namespace ehttp
 		 * 
 		 * @param connection The newly established connection
 		 */
-		std::function<void(std::shared_ptr<TCPServer::Connection> connection)> onConnected;
+		std::function<void(std::shared_ptr<TCPConnection> connection)> onConnected;
 		
 		/**
 		 * Callback for when a connection receives data.
@@ -113,7 +112,7 @@ namespace ehttp
 		 * @param data Pointer to the response data; this is only guaranteed to be valid until this callback returns
 		 * @param size Size of the response data
 		 */
-		std::function<void(std::shared_ptr<TCPServer::Connection> connection, const char *data, std::size_t size)> onData;
+		std::function<void(std::shared_ptr<TCPConnection> connection, const char *data, std::size_t size)> onData;
 		
 		/**
 		 * Callback for when a connection is disconnected.
@@ -124,7 +123,7 @@ namespace ehttp
 		 * 
 		 * @param connection The newly disconnected connection
 		 */
-		std::function<void(std::shared_ptr<TCPServer::Connection> connection)> onDisconnected;
+		std::function<void(std::shared_ptr<TCPConnection> connection)> onDisconnected;
 		
 		/**
 		 * Callback for when there's a problem.
@@ -143,17 +142,17 @@ namespace ehttp
 		
 		
 		/// Overridable emitter for #onConnected
-		virtual void eventConnected(std::shared_ptr<TCPServer::Connection> connection) {
+		virtual void eventConnected(std::shared_ptr<TCPConnection> connection) {
 			if(onConnected) onConnected(connection);
 		}
 		
 		/// Overridable emitter for #onData
-		virtual void eventData(std::shared_ptr<TCPServer::Connection> connection, const char *data, std::size_t size) {
+		virtual void eventData(std::shared_ptr<TCPConnection> connection, const char *data, std::size_t size) {
 			if(onData) onData(connection, data, size);
 		}
 		
 		/// Overridable emitter for #onDisconnected
-		virtual void eventDisconnected(std::shared_ptr<TCPServer::Connection> connection) {
+		virtual void eventDisconnected(std::shared_ptr<TCPConnection> connection) {
 			if(onDisconnected) onDisconnected(connection);
 		}
 		
@@ -161,79 +160,6 @@ namespace ehttp
 		virtual void eventError(asio::error_code error) {
 			if(onError) onError(error);
 		}
-		
-	private:
-		struct impl;
-		impl *p;
-	};
-	
-	
-	
-	/**
-	 * Represents a connection for \ref TCPServer.
-	 * 
-	 * Note that a connection will retain a shared_ptr to itself, thus
-	 * preventing it from getting deleted until it has disconnected.\n
-	 * When you are done with a connection, you should thus always call
-	 * disconnect() on it to prevent it from just laying around.
-	 */
-	class TCPServer::Connection : public std::enable_shared_from_this<TCPServer::Connection>
-	{
-	public:
-		/**
-		 * Constructor.
-		 * @param srv The parent server
-		 * @param service The ASIO service
-		 */
-		Connection(TCPServer *srv, io_service &service);
-		virtual ~Connection();
-		
-		/// Returns the connection's ASIO socket
-		tcp::socket& socket();
-		
-		/**
-		 * Writes a chunk of data to the stream.
-		 * The data is copied into an internal write buffer to ensure that it
-		 * stays valid.
-		 */
-		void write(std::vector<char> data, std::function<void(const asio::error_code &error, std::size_t bytes_transferred)> callback = nullptr);
-		
-		/**
-		 * Disconnects from the client, and allows the connection to be deleted
-		 * if there are no more references to it.
-		 */
-		void disconnect();
-		
-		
-		
-		/// Arbitrary, user-assigned pointer, to be used for context data
-		std::shared_ptr<void> userdata;
-		
-		
-		
-		/**
-		 * \private
-		 * Called when the socket is connected.
-		 * 
-		 * For internal use only.
-		 */
-		void connected();
-		
-		/**
-		 * \private
-		 * Called in a loop to read data form the stream.
-		 * 
-		 * For internal use only.
-		 */
-		void readChunk();
-		
-		/**
-		 * \private
-		 * Called from a write() to write the next thing in the write queue.
-		 * 
-		 * For internal use only.
-		 */
-		void writeNext();
 		
 	private:
 		struct impl;

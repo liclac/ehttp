@@ -9,7 +9,7 @@
 
 using namespace ehttp;
 
-void HTTPServer::eventConnected(std::shared_ptr<HTTPServer::Connection> connection)
+void HTTPServer::eventConnected(std::shared_ptr<TCPConnection> connection)
 {
 	// If you want to do some setup when the connection is established (such
 	// as if you used pointers for context objects), do it here.
@@ -17,7 +17,7 @@ void HTTPServer::eventConnected(std::shared_ptr<HTTPServer::Connection> connecti
 	TCPServer::eventConnected(connection);
 }
 
-void HTTPServer::eventDisconnected(std::shared_ptr<HTTPServer::Connection> connection)
+void HTTPServer::eventDisconnected(std::shared_ptr<TCPConnection> connection)
 {
 	// Delete the context data for the disconnected connection
 	contexts.erase(connection);
@@ -25,7 +25,7 @@ void HTTPServer::eventDisconnected(std::shared_ptr<HTTPServer::Connection> conne
 	TCPServer::eventDisconnected(connection);
 }
 
-void HTTPServer::eventData(std::shared_ptr<HTTPServer::Connection> connection, const char *data, std::size_t size)
+void HTTPServer::eventData(std::shared_ptr<TCPConnection> connection, const char *data, std::size_t size)
 {
 	// std::map's operator[] implicitly creates an object if it doesn't exist,
 	// and then returns a reference to it. Thus, no need to do it manually!

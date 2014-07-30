@@ -12,12 +12,12 @@ int main(int argc, const char **argv)
 {
 	// Make a server, and a map of parsers corresponding to them
 	HTTPServer srv;
-	HTTPResponseFactory<std::shared_ptr<HTTPServer::Connection>> resf;
-	std::map<std::shared_ptr<HTTPServer::Connection>, std::shared_ptr<HTTPRequestParser>> parsers;
+	HTTPResponseFactory<std::shared_ptr<TCPConnection>> resf;
+	std::map<std::shared_ptr<TCPConnection>, std::shared_ptr<HTTPRequestParser>> parsers;
 	
 	
 	
-	resf.onDataFunc = [=](std::shared_ptr<HTTPServer::Connection> connection) {
+	resf.onDataFunc = [=](std::shared_ptr<TCPConnection> connection) {
 		return [=](std::shared_ptr<HTTPResponse> res, std::vector<char> data) {
 			// Log data being written, before just feeding it to the connection
 			std::cout << "--> onData" << std::endl;
@@ -32,11 +32,11 @@ int main(int argc, const char **argv)
 	
 	
 	// Create and destroy parsers in the connection and disconnection handlers
-	srv.onConnected = [&](std::shared_ptr<HTTPServer::Connection> connection) {
+	srv.onConnected = [&](std::shared_ptr<TCPConnection> connection) {
 		std::cout << "> Connected!" << std::endl;
 		parsers[connection] = std::make_shared<HTTPRequestParser>();
 	};
-	srv.onDisconnected = [&](std::shared_ptr<HTTPServer::Connection> connection) {
+	srv.onDisconnected = [&](std::shared_ptr<TCPConnection> connection) {
 		std::cout << "> Disconnected!" << std::endl;
 		parsers.erase(connection);
 	};
@@ -44,7 +44,7 @@ int main(int argc, const char **argv)
 	
 	
 	// Handle data received on connections
-	srv.onData = [&](std::shared_ptr<HTTPServer::Connection> connection, const char *data, std::size_t size) {
+	srv.onData = [&](std::shared_ptr<TCPConnection> connection, const char *data, std::size_t size) {
 		// If you want to log the raw received data:
 		//std::cout << std::string(static_cast<char*>(data), size) << std::endl;
 		
