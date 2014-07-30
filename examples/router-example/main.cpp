@@ -1,5 +1,6 @@
 #include <ehttp/HTTPServer.h>
 #include <ehttp/HTTPRouter.h>
+#include <sstream>
 #include <iostream>
 
 using namespace ehttp;
@@ -17,6 +18,14 @@ int main(int argc, char **argv)
 	});
 	srv.router->on("GET", "/unauthorized", [=](std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
 		res->begin(403)
+			->end();
+	});
+	srv.router->on("GET", "/hi/:name", [=](std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPResponse> res) {
+		std::stringstream ss;
+		ss << "Hi, " << req->args[":name"] << "!";
+		res->begin()
+			->header("Content-Type", "text/plain")
+			->write(ss.str())
 			->end();
 	});
 	
