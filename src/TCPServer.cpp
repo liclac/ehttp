@@ -90,10 +90,19 @@ void TCPServer::poll()
 void TCPServer::accept()
 {
 	auto connection = std::make_shared<TCPConnection>(p->service);
-	connection->onConnected = [&]{ this->eventConnected(connection); };
-	connection->onData = [&](const char *data, std::size_t size){ this->eventData(connection, data, size); };
-	connection->onDisconnected = [&]{ this->eventDisconnected(connection); };
-	connection->onError = [&](asio::error_code error){ this->eventError(error); };
+	auto w_connection = std::weak_ptr<TCPConnection>(connection);
+	connection->onConnected = [=]{
+		this->eventConnected(w_connection.lock());
+	};
+	connection->onData = [=](const char *data, std::size_t size){
+		this->eventData(w_connection.lock(), data, size);
+	};
+	connection->onDisconnected = [=]{
+		this->eventDisconnected(w_connection.lock());
+	};
+	connection->onError = [=](asio::error_code error){
+		this->eventError(error);
+	};
 	
 	p->acceptor.async_accept(connection->socket(), [=](const asio::error_code &error)
 	{
