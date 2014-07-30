@@ -100,14 +100,17 @@ void HTTPRouter::route(std::shared_ptr<HTTPRequest> req, std::shared_ptr<HTTPRes
 			auto it = node->children.find(component);
 			if(it == node->children.end())
 			{
+				// If we can't find a node like that, check for a placeholder
 				it = node->children.find("*");
 				if(it != node->children.end())
 				{
+					// If there is one, use the unmatched component as a key!
 					req->args.insert(std::pair<std::string,std::string>(it->second.argName, component));
 					node = &it->second;
 				}
 				else
 				{
+					// Just give up, we tried, there was no handler to be found
 					node = nullptr;
 					break;
 				}
