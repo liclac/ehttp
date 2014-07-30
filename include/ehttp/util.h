@@ -55,12 +55,11 @@ namespace ehttp
 		 * 
 		 * The result will be formatted like "Fri, 31 Dec 1999 23:59:59 GMT".
 		 */
-		inline std::string http_date()
+		inline std::string http_date(std::time_t t = std::time(nullptr))
 		{
-			const char *days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Wed" };
-			const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", "Dec" };
+			const char * const days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Wed" };
+			const char * const months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", "Dec" };
 			
-			std::time_t t = std::time(nullptr);
 			std::tm *now = std::gmtime(&t);
 			
 			std::stringstream ss;
