@@ -12,14 +12,12 @@ using namespace asio::ip;
 struct TCPServer::impl
 {
 	io_service service;
-	
 	io_service::work *work;
 	tcp::acceptor acceptor;
 	
 	std::deque<std::thread> worker_threads;
 	
-	impl():
-		acceptor(service)
+	impl(): acceptor(service)
 	{}
 };
 
