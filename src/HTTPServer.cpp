@@ -70,6 +70,5 @@ void HTTPServer::eventData(std::shared_ptr<TCPConnection> connection, const char
 void HTTPServer::eventError(asio::error_code error)
 {
 	// If you want to handle errors
-	
 	TCPServer::eventError(error);
 }
